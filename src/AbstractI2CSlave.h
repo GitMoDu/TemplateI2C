@@ -10,6 +10,10 @@
 #include <Wire.h>
 #include <IMessageI2C.h>
 
+#define I2C_BUFFER_SIZE				32
+#define TWI_RX_BUFFER_SIZE			( I2C_BUFFER_SIZE )
+#define TWI_TX_BUFFER_SIZE			( I2C_BUFFER_SIZE )
+
 #define I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH	32
 
 
@@ -33,13 +37,16 @@ private:
 
 	volatile bool IncomingMessageAvailable = false;
 	MessageClass IncomingMessage;
-	MessageClass* OutgoingMessage = nullptr;
 
 protected:
 	MessageClass CurrentMessage;
+	MessageClass* OutgoingMessage = nullptr;
 
 	uint8_t CurrentHeader;
 	uint8_t CurrentTargetChannel;
+
+protected:
+	virtual void ProcessCurrentMessage() {}
 
 public:
 	AbstractI2CSlaveTask(Scheduler* scheduler)
@@ -48,7 +55,12 @@ public:
 		I2CHandler = this;
 	}
 
-	void ReceiveEvent(int length)
+	bool OnEnable()
+	{
+		return true;
+	}
+
+	void OnReceive(int length)
 	{
 		// Sanity-check.
 		if (length < 1 ||
@@ -71,7 +83,7 @@ public:
 		enable();
 	}
 
-	void RequestEvent()
+	void OnRequest()
 	{
 		if (OutgoingMessage != nullptr)
 		{
@@ -79,18 +91,14 @@ public:
 		}
 	}
 
-	bool OnEnable()
-	{
-		return true;
-	}
-
 	bool Callback()
 	{
+		//The copy buffer operations is staggered, to allow for queue fill without disrupting interrupts.
 		if (IncomingMessageAvailable)
 		{
 			MessageQueue.addForce(*IncomingMessage);
 			IncomingMessageAvailable = false;
-			forceNextIteration();
+			enable();
 		}
 		else if (!MessageQueue.isEmpty())
 		{
@@ -101,7 +109,7 @@ public:
 
 			ProcessCurrentMessage();
 
-			forceNextIteration();
+			enable();
 
 			return true;
 		}
@@ -113,8 +121,7 @@ public:
 		return false;
 	}
 
-protected:
-	virtual void ProcessCurrentMessage() {}
+
 
 };
 
