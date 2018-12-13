@@ -75,7 +75,7 @@ public:
 	{
 		if (OutgoingMessage != nullptr)
 		{
-			Wire.write((uint8_t *)OutgoingMessage->GetRaw(), (size_t)OutgoingMessage->GetLength());
+			Wire.write(OutgoingMessage->GetRaw(), (size_t)OutgoingMessage->GetLength());
 		}
 	}
 

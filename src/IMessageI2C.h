@@ -83,19 +83,11 @@ public:
 	{
 		Data[0] = header;
 		if (Length < 1)
-		{
+		{			
 			Length = 1;
 		}
 	}
 
-	void SetHeader(const uint8_t channelIndex, const uint8_t header)
-	{
-		Data[0] = header + (ServosApi::ChannelSlotRange * channelIndex);
-		if (Length < 1)
-		{
-			Length = 1;
-		}
-	}
 };
 #endif
 
