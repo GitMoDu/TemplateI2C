@@ -29,7 +29,25 @@ public:
 	}
 };
 
-template <class MessageClass : public IMessageI2C, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
+I2CInterruptTask* I2CHandler = nullptr;
+
+void ReceiveEvent(int length)
+{
+	if (I2CHandler != nullptr)
+	{
+		I2CHandler->OnReceive(length);
+	}
+}
+
+void RequestEvent()
+{
+	if (I2CHandler != nullptr)
+	{
+		I2CHandler->OnRequest();
+	}
+}
+
+template <typename MessageClass, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
 class AbstractI2CSlaveTask : public I2CInterruptTask
 {
 private:
@@ -96,7 +114,7 @@ public:
 		//The copy buffer operations is staggered, to allow for queue fill without disrupting interrupts.
 		if (IncomingMessageAvailable)
 		{
-			MessageQueue.addForce(*IncomingMessage);
+			MessageQueue.addForce(IncomingMessage);
 			IncomingMessageAvailable = false;
 			enable();
 		}
@@ -120,29 +138,6 @@ public:
 
 		return false;
 	}
-
-
-
 };
-
-I2CInterruptTask* I2CHandler = nullptr;
-
-
-void ReceiveEvent(int length)
-{
-	if (I2CHandler != nullptr)
-	{
-		I2CHandler->OnReceive(length);
-	}
-}
-
-void RequestEvent()
-{
-	if (I2CHandler != nullptr)
-	{
-		I2CHandler->OnRequest();
-	}
-}
-
 #endif
 
