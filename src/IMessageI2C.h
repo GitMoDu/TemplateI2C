@@ -17,6 +17,10 @@ public:
 };
 
 //Template class for messages.
+union ArrayToUint32 {
+	byte array[4];
+	uint32_t uint;
+};
 template <const uint8_t MessageMaxSize>
 class TemplateMessageI2C : public IMessageI2C
 {
