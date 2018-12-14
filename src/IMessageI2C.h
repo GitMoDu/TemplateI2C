@@ -17,6 +17,11 @@ public:
 };
 
 //Template class for messages.
+#define I2C_SLAVE_BASE_HEADER						0xF0
+#define I2C_SLAVE_MAX_HEADER_VALUE					( I2C_SLAVE_BASE_HEADER - 1 )
+#define I2C_SLAVE_BASE_HEADER_DEVICE_ID				( I2C_SLAVE_BASE_HEADER + 0)
+#define I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL			( I2C_SLAVE_BASE_HEADER + 1)
+#define I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_REPORT	( I2C_SLAVE_BASE_HEADER + 2)
 union ArrayToUint32 {
 	byte array[4];
 	uint32_t uint;
