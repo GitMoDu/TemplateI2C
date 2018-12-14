@@ -22,6 +22,9 @@
 
 class I2CInterruptTask : public Task
 {
+protected:
+	volatile uint32_t LastI2CEventMillis = 0;
+
 public:
 	virtual void OnReceive(int length) {}
 	virtual void OnRequest() {}
@@ -29,6 +32,11 @@ public:
 	I2CInterruptTask(Scheduler* scheduler)
 		: Task(0, TASK_FOREVER, scheduler, true)
 	{
+	}
+
+	void TimeStampI2CEvent()
+	{
+		LastI2CEventMillis = millis();
 	}
 };
 
@@ -39,6 +47,7 @@ void ReceiveEvent(int length)
 	if (I2CHandler != nullptr)
 	{
 		I2CHandler->OnReceive(length);
+		I2CHandler->TimeStampI2CEvent();
 	}
 }
 
@@ -47,6 +56,7 @@ void RequestEvent()
 	if (I2CHandler != nullptr)
 	{
 		I2CHandler->OnRequest();
+		I2CHandler->TimeStampI2CEvent();
 	}
 }
 
@@ -83,7 +93,6 @@ protected:
 	volatile uint32_t MessageSizeErrors = 0;
 	volatile uint32_t MessageProcessingErrors = 0;
 	volatile uint32_t QueueErrors = 0;
-	volatile uint32_t LastI2CEventMillis = 0;
 
 	volatile bool MessageErrorReportNeedsUpdating = false;
 	///
@@ -193,8 +202,6 @@ public:
 
 		IncomingMessageAvailable = true;
 		enable();
-
-		LastI2CEventMillis = millis;
 	}
 
 	void OnRequest()
@@ -203,7 +210,6 @@ public:
 		{
 			I2CInstance->write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
-		LastI2CEventMillis = millis;
 	}
 
 	bool Callback()
@@ -322,7 +328,7 @@ private:
 			OutgoingMessage = &MessageErrorsReportMessage;
 			return true;
 		default:
-			if(CurrentMessage.GetHeader() < I2C_SLAVE_BASE_HEADER)
+			if (CurrentMessage.GetHeader() < I2C_SLAVE_BASE_HEADER)
 			{
 				return ProcessMessage(&CurrentMessage);
 			}
