@@ -10,11 +10,14 @@
 #include <Wire.h>
 #include <IMessageI2C.h>
 
-#define I2C_BUFFER_SIZE				32
-#define TWI_RX_BUFFER_SIZE			( I2C_BUFFER_SIZE )
-#define TWI_TX_BUFFER_SIZE			( I2C_BUFFER_SIZE )
+#define I2C_BUFFER_SIZE								32
+#define TWI_RX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
+#define TWI_TX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
 
-#define I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH	32
+#define I2C_ADDRESS_MIN_VALUE						0x10
+#define I2C_ADDRESS_MAX_VALUE						0xC0
+
+#define I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH	10
 
 
 class I2CInterruptTask : public Task
