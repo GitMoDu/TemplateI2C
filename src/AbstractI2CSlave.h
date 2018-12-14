@@ -7,8 +7,10 @@
 
 #include <TaskSchedulerDeclarations.h>
 #include <RingBufCPP.h>
-#include <Wire.h>
 #include <IMessageI2C.h>
+
+//TODO: make #defined variant for AtTiny.
+#include <Wire.h>
 
 #define I2C_BUFFER_SIZE								32
 #define TWI_RX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
