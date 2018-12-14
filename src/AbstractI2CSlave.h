@@ -54,26 +54,94 @@ template <typename MessageClass, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_
 class AbstractI2CSlaveTask : public I2CInterruptTask
 {
 private:
-	RingBufCPP<MessageClass, ReceiverQueueDepth> MessageQueue;
-
+	///Message queue.
 	volatile bool IncomingMessageAvailable = false;
+	RingBufCPP<MessageClass, ReceiverQueueDepth> MessageQueue;
 	MessageClass IncomingMessage;
+	MessageClass CurrentMessage;
+	///
+
+	///I2C. //TODO: make #defined variant for AtTiny.
+	TwoWire* I2CInstance = nullptr;
+	///
+
+	///Error and Status for this session.
+	MessageClass MessageErrorsReportMessage;
+	MessageClass IdMessage;
+	MessageClass SerialMessage;
+	///
+
+	///Array helper
+	ArrayToUint32 Helper32Bit;
 
 protected:
-	MessageClass CurrentMessage;
+	///I2C Read output message.
 	MessageClass* OutgoingMessage = nullptr;
 
-	uint8_t CurrentHeader;
-	uint8_t CurrentTargetChannel;
+	///Error and Status for this session.
+	volatile uint32_t MessageOverflows = 0;
+	volatile uint32_t MessageSizeErrors = 0;
+	volatile uint32_t MessageProcessingErrors = 0;
+	volatile uint32_t QueueErrors = 0;
+
+	volatile bool MessageErrorReportNeedsUpdating = false;
+	///
 
 protected:
-	virtual void ProcessCurrentMessage() {}
-
+	virtual bool ProcessMessage(MessageClass* currentMessage) {}
+	virtual bool OnSetup() { return false; }
+	virtual uint32_t GetDeviceId() { return 0; }
+	virtual uint32_t GetSerial() { return 0; }
 public:
 	AbstractI2CSlaveTask(Scheduler* scheduler)
 		: I2CInterruptTask(scheduler)
 	{
 		I2CHandler = this;
+	}
+
+	bool Setup(TwoWire* i2CInstance, const uint8_t deviceAddress)
+	{
+		if (deviceAddress > I2C_ADDRESS_MIN_VALUE
+			&& deviceAddress < I2C_ADDRESS_MAX_VALUE)
+		{
+			I2CInstance = i2CInstance;
+
+			if (I2CInstance != nullptr)
+			{
+				///Overzealous I2C Setup.
+				pinMode(PIN_WIRE_SCL, INPUT);
+				pinMode(PIN_WIRE_SDA, INPUT);
+				delay(1);
+				I2CInstance->flush();
+				delay(1);
+				///
+
+				I2CInstance->begin(deviceAddress); //Join i2c bus with address.
+				I2CInstance->onReceive(ReceiveEvent);
+				I2CInstance->onRequest(RequestEvent);
+
+				if (OnSetup())
+				{
+					MessageOverflows = 0;
+					MessageSizeErrors = 0;
+					MessageProcessingErrors = 0;
+					QueueErrors = 0;
+
+					PrepareBaseMessages();
+
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	void AddMessage(MessageClass* message)
+	{
+		IncomingMessage = *message;
+		IncomingMessageAvailable = true;
+		enable();
 	}
 
 	bool OnEnable()
@@ -83,20 +151,41 @@ public:
 
 	void OnReceive(int length)
 	{
-		// Sanity-check.
 		if (length < 1 ||
 			length > TWI_RX_BUFFER_SIZE)
 		{
+			//Sanity-check.
+			MessageSizeErrors++;
+
+			enableIfNot();
+
+			return;
+		}
+
+		if (IncomingMessageAvailable)
+		{
+			//Cannot respond so quickly, hold your horses.
+			//If this happens, we've skipped a message.
+			MessageOverflows++;
+			MessageErrorReportNeedsUpdating = true;
+
+			enableIfNot();
+
 			return;
 		}
 
 		IncomingMessage.Clear();
-		////We copy to a second buffer, so we can process it in the main loop safely, instead of in the interrupt.
+		//We copy to a second buffer, so we can process it in the main loop safely, instead of in the interrupt.
 		while (length--)
 		{
-			if (!IncomingMessage.Write(Wire.read()))
+			if (!IncomingMessage.Write(I2CInstance->read()))
 			{
-				break;
+				MessageSizeErrors++;
+				MessageErrorReportNeedsUpdating = true;
+
+				enableIfNot();
+
+				return;
 			}
 		}
 
@@ -108,7 +197,7 @@ public:
 	{
 		if (OutgoingMessage != nullptr)
 		{
-			Wire.write(OutgoingMessage->GetRaw(), (size_t)OutgoingMessage->GetLength());
+			I2CInstance->write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
 	}
 
@@ -125,11 +214,26 @@ public:
 		{
 			if (!MessageQueue.pull(CurrentMessage))
 			{
+				//Something must have gone wrong.
+				QueueErrors++;
+				MessageErrorReportNeedsUpdating = true;
+
 				return true;
 			}
 
-			ProcessCurrentMessage();
+			if (ProcessMessageInternal())
+			{
+				//Unrecognized message.
+				MessageProcessingErrors++;
+				MessageErrorReportNeedsUpdating = true;
+			}
+			enable();
 
+			return true;
+		}
+		else if (MessageErrorReportNeedsUpdating)
+		{
+			UpdateMessageErrorsReport();
 			enable();
 
 			return true;
@@ -137,6 +241,86 @@ public:
 		else
 		{
 			disable();
+		}
+
+		return false;
+	}
+
+private:
+	inline void PrepareBaseMessages()
+	{
+		//Id.
+		IdMessage.Clear();
+		IdMessage.Write(I2C_SLAVE_BASE_HEADER_DEVICE_ID);
+		Helper32Bit.uint = GetDeviceId();
+		IdMessage.Write(Helper32Bit.array, 4);
+
+		//Serial.
+		SerialMessage.Clear();
+		SerialMessage.Write(I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL);
+		Helper32Bit.uint = GetSerial();
+		SerialMessage.Write(Helper32Bit.array, 4);
+
+		//Message errors Report.
+		MessageErrorsReportMessage.Clear();
+		MessageErrorsReportMessage.Write(I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_REPORT);
+		//Fill in with zeros until the message size = 1 + 16 bytes.
+		Helper32Bit.uint = 0;
+		MessageErrorsReportMessage.Write(Helper32Bit.array, 4);
+		MessageErrorsReportMessage.Write(Helper32Bit.array, 4);
+		MessageErrorsReportMessage.Write(Helper32Bit.array, 4);
+		MessageErrorsReportMessage.Write(Helper32Bit.array, 4);
+		//Updated with real values.
+		UpdateMessageErrorsReport();
+	}
+
+	void UpdateMessageErrorsReport()
+	{
+		MessageErrorReportNeedsUpdating = false;
+
+		Helper32Bit.uint = MessageOverflows;
+		MessageErrorsReportMessage.GetRaw()[1] = Helper32Bit.array[0];
+		MessageErrorsReportMessage.GetRaw()[2] = Helper32Bit.array[1];
+		MessageErrorsReportMessage.GetRaw()[3] = Helper32Bit.array[2];
+		MessageErrorsReportMessage.GetRaw()[4] = Helper32Bit.array[3];
+
+		Helper32Bit.uint = MessageSizeErrors;
+		MessageErrorsReportMessage.GetRaw()[5] = Helper32Bit.array[0];
+		MessageErrorsReportMessage.GetRaw()[6] = Helper32Bit.array[1];
+		MessageErrorsReportMessage.GetRaw()[7] = Helper32Bit.array[2];
+		MessageErrorsReportMessage.GetRaw()[8] = Helper32Bit.array[3];
+
+		Helper32Bit.uint = MessageProcessingErrors;
+		MessageErrorsReportMessage.GetRaw()[9] = Helper32Bit.array[0];
+		MessageErrorsReportMessage.GetRaw()[10] = Helper32Bit.array[1];
+		MessageErrorsReportMessage.GetRaw()[11] = Helper32Bit.array[2];
+		MessageErrorsReportMessage.GetRaw()[12] = Helper32Bit.array[3];
+
+		Helper32Bit.uint = QueueErrors;
+		MessageErrorsReportMessage.GetRaw()[13] = Helper32Bit.array[0];
+		MessageErrorsReportMessage.GetRaw()[14] = Helper32Bit.array[1];
+		MessageErrorsReportMessage.GetRaw()[15] = Helper32Bit.array[2];
+		MessageErrorsReportMessage.GetRaw()[16] = Helper32Bit.array[3];
+	}
+
+	bool ProcessMessageInternal()
+	{
+		switch (CurrentMessage.GetHeader())
+		{
+		case I2C_SLAVE_BASE_HEADER_DEVICE_ID:
+			OutgoingMessage = &IdMessage;
+			return true;
+		case I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL:
+			OutgoingMessage = &SerialMessage;
+			return true;
+		case I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_REPORT:
+			OutgoingMessage = &MessageErrorsReportMessage;
+			return true;
+		default:
+			if(CurrentMessage.GetHeader() < I2C_SLAVE_BASE_HEADER)
+			{
+				return ProcessMessage(&CurrentMessage);
+			}
 		}
 
 		return false;
