@@ -26,6 +26,12 @@ union ArrayToUint32 {
 	byte array[4];
 	uint32_t uint;
 };
+
+union ArrayToUint16 {
+	byte array[2];
+	uint16_t uint;
+};
+
 template <const uint8_t MessageMaxSize>
 class TemplateMessageI2C : public IMessageI2C
 {
