@@ -127,6 +127,7 @@ public:
 					MessageSizeErrors = 0;
 					MessageProcessingErrors = 0;
 					QueueErrors = 0;
+					LastI2CEventMillis = 0;
 
 					PrepareBaseMessages();
 
