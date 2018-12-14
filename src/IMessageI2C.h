@@ -5,6 +5,8 @@
 
 #include <stdint.h>
 
+#define I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN 18
+
 //Base interface for I2C message.
 class IMessageI2C
 {
