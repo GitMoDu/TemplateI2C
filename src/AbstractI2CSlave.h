@@ -83,6 +83,7 @@ protected:
 	volatile uint32_t MessageSizeErrors = 0;
 	volatile uint32_t MessageProcessingErrors = 0;
 	volatile uint32_t QueueErrors = 0;
+	volatile uint32_t LastI2CEventMillis = 0;
 
 	volatile bool MessageErrorReportNeedsUpdating = false;
 	///
@@ -191,6 +192,8 @@ public:
 
 		IncomingMessageAvailable = true;
 		enable();
+
+		LastI2CEventMillis = millis;
 	}
 
 	void OnRequest()
@@ -199,6 +202,7 @@ public:
 		{
 			I2CInstance->write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
+		LastI2CEventMillis = millis;
 	}
 
 	bool Callback()
