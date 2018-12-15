@@ -85,6 +85,7 @@ private:
 
 	///Array helper
 	ArrayToUint32 Helper32Bit;
+	///
 
 protected:
 	///I2C Read output message.
