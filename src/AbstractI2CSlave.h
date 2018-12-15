@@ -9,8 +9,14 @@
 #include <RingBufCPP.h>
 #include <IMessageI2C.h>
 
-//TODO: make #defined variant for AtTiny.
+#if defined(__AVR_ATmega328P__)
 #include <Wire.h>
+#elif defined(__AVR_ATtiny85__)
+#include <TinyWireS.h>
+#define PIN_WIRE_SCL 7
+#define PIN_WIRE_SDA 5
+#endif
+
 
 #define I2C_BUFFER_SIZE								32
 #define TWI_RX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
@@ -19,13 +25,23 @@
 #define I2C_ADDRESS_MIN_VALUE						0x10
 #define I2C_ADDRESS_MAX_VALUE						0xC0
 
+
+#if defined(__AVR_ATmega328P__)
 #define I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH	10
+#elif defined(__AVR_ATtiny85__)
+#define I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH	3 //ATTiny has much less memory, we can't have such a big queue.
+#endif
+
 
 
 class I2CInterruptTask : public Task
 {
 protected:
 	volatile uint32_t LastI2CEventMillis = 0;
+
+#if defined(__AVR_ATtiny85__)
+	uint8_t OutHelper = 0;
+#endif
 
 public:
 	virtual void OnReceive(int length) {}
@@ -44,7 +60,11 @@ public:
 
 I2CInterruptTask* I2CHandler = nullptr;
 
+#if defined(__AVR_ATmega328P__)
 void ReceiveEvent(int length)
+#elif defined(__AVR_ATtiny85__)
+void ReceiveEvent(uint8_t length)
+#endif
 {
 	if (I2CHandler != nullptr)
 	{
@@ -74,7 +94,11 @@ private:
 	///
 
 	///I2C. //TODO: make #defined variant for AtTiny.
+#if defined(__AVR_ATmega328P__)
 	TwoWire* I2CInstance = nullptr;
+#elif defined(__AVR_ATtiny85__)
+	USI_TWI_S* I2CInstance = nullptr;
+#endif
 	///
 
 	///Error and Status for this session.
@@ -112,7 +136,11 @@ public:
 		I2CHandler = this;
 	}
 
+#if defined(__AVR_ATmega328P__)
 	bool Setup(TwoWire* i2CInstance, const uint8_t deviceAddress)
+#elif defined(__AVR_ATtiny85__)
+	bool Setup(USI_TWI_S* i2CInstance, const uint8_t deviceAddress)
+#endif
 	{
 		if (deviceAddress > I2C_ADDRESS_MIN_VALUE
 			&& deviceAddress < I2C_ADDRESS_MAX_VALUE)
@@ -125,7 +153,9 @@ public:
 				pinMode(PIN_WIRE_SCL, INPUT);
 				pinMode(PIN_WIRE_SDA, INPUT);
 				delay(1);
+#if defined(__AVR_ATmega328P__)
 				I2CInstance->flush();
+#endif				
 				delay(1);
 				///
 
@@ -163,7 +193,11 @@ public:
 		return true;
 	}
 
+#if defined(__AVR_ATmega328P__)
 	void OnReceive(int length)
+#elif defined(__AVR_ATtiny85__)
+	void OnReceive(uint8_t length)
+#endif
 	{
 		if (length < 1 ||
 			length > TWI_RX_BUFFER_SIZE)
@@ -192,7 +226,11 @@ public:
 		//We copy to a second buffer, so we can process it in the main loop safely, instead of in the interrupt.
 		while (length--)
 		{
+#if defined(__AVR_ATmega328P__)
 			if (!IncomingMessage.Write(I2CInstance->read()))
+#elif defined(__AVR_ATtiny85__)
+			if (!IncomingMessage.Write(I2CInstance->receive()))
+#endif
 			{
 				MessageSizeErrors++;
 				MessageErrorReportNeedsUpdating = true;
@@ -211,7 +249,16 @@ public:
 	{
 		if (OutgoingMessage != nullptr)
 		{
+#if defined(__AVR_ATmega328P__)
 			I2CInstance->write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
+
+
+#elif defined(__AVR_ATtiny85__)
+			for (OutHelper = 0; OutHelper < (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()); OutHelper++)
+			{
+				I2CInstance->send(OutgoingMessage->GetRaw()[OutHelper]);
+			}
+#endif
 		}
 	}
 
