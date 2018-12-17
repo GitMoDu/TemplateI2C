@@ -90,6 +90,28 @@ protected:
 	virtual uint32_t GetDeviceId() { return 0; }
 	virtual uint32_t GetSerial() { return 0; }
 
+protected:
+	void OnMessageOverflowError()
+	{
+		MessageOverflows++;
+		MessageErrorReportNeedsUpdating = true;
+		enableIfNot();
+	}
+
+	void OnMessageSizeError()
+	{
+		MessageSizeErrors++;
+		MessageErrorReportNeedsUpdating = true;
+		enableIfNot();
+	}
+
+	void OnMessageContentError()
+	{
+		MessageContentErrors++;
+		MessageErrorReportNeedsUpdating = true;
+		enableIfNot();
+	}
+
 public:
 	AbstractI2CSlaveTask(Scheduler* scheduler)
 		: I2CInterruptTask(scheduler)
@@ -153,9 +175,7 @@ public:
 			length > TWI_RX_BUFFER_SIZE)
 		{
 			//Sanity-check.
-			MessageSizeErrors++;
-
-			enableIfNot();
+			OnMessageSizeError();
 
 			return;
 		}
@@ -164,10 +184,7 @@ public:
 		{
 			//Cannot respond so quickly, hold your horses.
 			//If this happens, we've skipped a message.
-			MessageOverflows++;
-			MessageErrorReportNeedsUpdating = true;
-
-			enableIfNot();
+			OnMessageOverflowError();
 
 			return;
 		}
@@ -178,10 +195,7 @@ public:
 		{
 			if (!IncomingMessage.Write(Wire.read()))
 			{
-				MessageSizeErrors++;
-				MessageErrorReportNeedsUpdating = true;
-
-				enableIfNot();
+				OnMessageSizeError();
 
 				return;
 			}
@@ -217,11 +231,10 @@ public:
 				return true;
 			}
 
-			if (ProcessMessageInternal())
+			if (!ProcessMessageInternal())
 			{
 				//Unrecognized message.
-				MessageContentErrors++;
-				MessageErrorReportNeedsUpdating = true;
+				OnMessageContentError();
 			}
 			enable();
 
@@ -291,18 +304,58 @@ private:
 		switch (CurrentMessage.GetHeader())
 		{
 		case I2C_SLAVE_BASE_HEADER_DEVICE_ID:
+			if (CurrentMessage.GetLength() != 1)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetId"));
+#endif
 			OutgoingMessage = &IdMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL:
+			if (CurrentMessage.GetLength() != 1)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetSerial"));
+#endif
 			OutgoingMessage = &SerialMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS:
+			if (CurrentMessage.GetLength() != 1)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetMessageOverflows"));
+#endif
 			OutgoingMessage = &MessageErrorsOverflowMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_BAD_SIZE:
+			if (CurrentMessage.GetLength() != 1)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetMessageSizeErrors"));
+#endif
 			OutgoingMessage = &MessageErrorsBadSizeMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_CONTENT:
+			if (CurrentMessage.GetLength() != 1)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetMessageContentErrors"));
+#endif
 			OutgoingMessage = &MessageErrorsContentMessage;
 			return true;
 		default:
