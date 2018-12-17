@@ -72,10 +72,6 @@ private:
 	MessageClass SerialMessage;
 	///
 
-protected:
-	///I2C Read output message.
-	MessageClass* OutgoingMessage = nullptr;
-
 	///Error and Status for this session.
 	volatile uint32_t MessageOverflows = 0;
 	volatile uint32_t MessageSizeErrors = 0;
@@ -83,6 +79,10 @@ protected:
 
 	volatile bool MessageErrorReportNeedsUpdating = false;
 	///
+
+protected:
+	///I2C Read output message.
+	MessageClass* OutgoingMessage = nullptr;
 
 protected:
 	virtual bool ProcessMessage(MessageClass* currentMessage) {}
