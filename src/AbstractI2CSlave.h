@@ -129,6 +129,12 @@ public:
 		return false;
 	}
 
+	void AddForceMessage(MessageClass* message)
+	{
+		MessageQueue.addForce(*message);
+		enable();
+	}
+
 	void AddMessage(MessageClass* message)
 	{
 		IncomingMessage = *message;
