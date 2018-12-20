@@ -87,39 +87,39 @@ public:
 		}
 	}
 
-	uint16_t Get8BitPayload(const uint8_t offset = 1)
+	uint16_t Get8BitPayload(const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint8_t))
+		if ((offset  + 1 )> GetLength() - sizeof(uint8_t))
 		{
 			return 0;
 		}
 
-		return Data[offset];
+		return Data[(offset  + 1 )];
 	}
 
-	uint16_t Get16BitPayload(const uint8_t offset = 1)
+	uint16_t Get16BitPayload(const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint16_t))
+		if ((offset  + 1 ) > GetLength() - sizeof(uint16_t))
 		{
 			return 0;
 		}
-		MessageHelper16.array[0] = Data[offset + 0];
-		MessageHelper16.array[1] = Data[offset + 1];
+		MessageHelper16.array[0] = Data[offset + 1];
+		MessageHelper16.array[1] = Data[offset + 2];
 
 		return MessageHelper16.uint;
 	}
 
-	uint32_t Get32BitPayload(const uint8_t offset = 1)
+	uint32_t Get32BitPayload(const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint32_t))
+		if ((offset  + 1 ) > GetLength() - sizeof(uint32_t))
 		{
 			return 0;
 		}
 
-		MessageHelper32.array[0] = Data[offset + 0];
-		MessageHelper32.array[1] = Data[offset + 1];
-		MessageHelper32.array[2] = Data[offset + 2];
-		MessageHelper32.array[3] = Data[offset + 3];
+		MessageHelper32.array[0] = Data[offset + 1];
+		MessageHelper32.array[1] = Data[offset + 2];
+		MessageHelper32.array[2] = Data[offset + 3];
+		MessageHelper32.array[3] = Data[offset + 4];
 
 		return MessageHelper32.uint;
 	}
@@ -141,29 +141,29 @@ public:
 		return true;
 	}
 
-	bool Set8BitPayload(const uint8_t value, const uint8_t offset = 1)
+	bool Set8BitPayload(const uint8_t value, const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint8_t))
+		if ((offset  + 1 ) > GetLength() - sizeof(uint8_t))
 		{
 			return false;
 		}
 
-		Data[offset] = value;
+		Data[(offset  + 1 )] = value;
 
 		return true;
 	}
 
-	bool Set16BitPayload(const uint16_t value, const uint8_t offset = 1)
+	bool Set16BitPayload(const uint16_t value, const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint16_t))
+		if ((offset  + 1 ) > GetLength() - sizeof(uint16_t))
 		{
 			return false;
 		}
 
 		MessageHelper16.uint = value;
 
-		Data[offset + 0] = MessageHelper16.array[0];
-		Data[offset + 1] = MessageHelper16.array[1];
+		Data[offset + 1] = MessageHelper16.array[0];
+		Data[offset + 2] = MessageHelper16.array[1];
 
 		return true;
 	}
@@ -180,19 +180,19 @@ public:
 		return true;
 	}
 
-	bool Set32BitPayload(const uint32_t value, const uint8_t offset = 1)
+	bool Set32BitPayload(const uint32_t value, const uint8_t offset = 0)
 	{
-		if (offset > GetLength() - sizeof(uint32_t))
+		if ((offset  + 1 ) > GetLength() - sizeof(uint32_t))
 		{
 			return false;
 		}
 
 		MessageHelper32.uint = value;
 
-		Data[offset + 0] = MessageHelper32.array[0];
-		Data[offset + 1] = MessageHelper32.array[1];
-		Data[offset + 2] = MessageHelper32.array[2];
-		Data[offset + 3] = MessageHelper32.array[3];
+		Data[offset + 1] = MessageHelper32.array[0];
+		Data[offset + 2] = MessageHelper32.array[1];
+		Data[offset + 3] = MessageHelper32.array[2];
+		Data[offset + 4] = MessageHelper32.array[3];
 
 		return true;
 	}
