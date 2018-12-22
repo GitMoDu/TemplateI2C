@@ -7,16 +7,19 @@
 #include <IMessageI2C.h>
 #include <MessageHelper.h>
 
-
+//This feature is only useful if you have rom/ram to spare and want a clean way to composite a message class.
+//Otherwise, it's best turned off, as it simplifies the class object into a simples intance with no virtual calls.
+//#define I2C_MESSAGE_IMPLEMENT_INTERFACE
 
 #define I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN 5
 
 
 //Template class for messages.
-
-
 template <const uint8_t MessageMaxSize>
-class TemplateMessageI2C : public IMessageI2C
+class TemplateMessageI2C
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
+	: public IMessageI2C
+#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
 {
 protected:
 	uint8_t Data[MessageMaxSize];

@@ -27,7 +27,7 @@ public:
 	{
 	}
 
-	void TimeStampI2CEvent()
+	inline void TimeStampI2CEvent()
 	{
 		LastI2CEventMillis = millis();
 	}
@@ -37,39 +37,31 @@ I2CInterruptTask* I2CHandler = nullptr;
 
 void ReceiveEvent(int length)
 {
-	if (I2CHandler != nullptr)
-	{
-		I2CHandler->OnReceive(length);
-		I2CHandler->TimeStampI2CEvent();
-	}
+	I2CHandler->OnReceive(length);
 }
 
 void RequestEvent()
 {
-	if (I2CHandler != nullptr)
-	{
-		I2CHandler->OnRequest();
-		I2CHandler->TimeStampI2CEvent();
-	}
+	I2CHandler->OnRequest();
 }
 
-template <typename MessageClass, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
+template <const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
 class AbstractI2CSlaveTask : public I2CInterruptTask
 {
 private:
 	///Message queue.
 	volatile bool IncomingMessageAvailable = false;
-	RingBufCPP<MessageClass, ReceiverQueueDepth> MessageQueue;
-	MessageClass IncomingMessage;
-	MessageClass CurrentMessage;
+	RingBufCPP<TemplateMessageI2C<MessageMaxSize>, ReceiverQueueDepth> MessageQueue;
+	TemplateMessageI2C<MessageMaxSize> IncomingMessage;
+	TemplateMessageI2C<MessageMaxSize> CurrentMessage;
 	///
 
 	///Error and Status for this session.
-	MessageClass MessageErrorsOverflowMessage;
-	MessageClass MessageErrorsBadSizeMessage;
-	MessageClass MessageErrorsContentMessage;
-	MessageClass IdMessage;
-	MessageClass SerialMessage;
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsOverflowMessage;
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsBadSizeMessage;
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsContentMessage;
+	TemplateMessageI2C<MessageMaxSize> IdMessage;
+	TemplateMessageI2C<MessageMaxSize> SerialMessage;
 	///
 
 	///Error and Status for this session.
@@ -82,10 +74,10 @@ private:
 
 protected:
 	///I2C Read output message.
-	MessageClass* OutgoingMessage = nullptr;
+	TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
 
 protected:
-	virtual bool ProcessMessage(MessageClass* currentMessage) {}
+	virtual bool ProcessMessage(TemplateMessageI2C<MessageMaxSize>* currentMessage) {}
 	virtual bool OnSetup() { return true; }
 	virtual uint32_t GetDeviceId() { return 0; }
 	virtual uint32_t GetSerial() { return 0; }
@@ -121,7 +113,8 @@ public:
 
 	bool Setup(const uint8_t deviceAddress)
 	{
-		if (deviceAddress > I2C_ADDRESS_MIN_VALUE
+		if (I2CHandler != nullptr &&
+			deviceAddress > I2C_ADDRESS_MIN_VALUE
 			&& deviceAddress < I2C_ADDRESS_MAX_VALUE)
 		{
 			///Overzealous I2C Setup.
@@ -147,17 +140,22 @@ public:
 				return true;
 			}
 		}
+		else
+		{
+			Wire.onReceive(nullptr);
+			Wire.onRequest(nullptr);
+		}
 
 		return false;
 	}
 
-	void AddForceMessage(MessageClass* message)
+	void AddForceMessage(TemplateMessageI2C<MessageMaxSize>* message)
 	{
 		MessageQueue.addForce(*message);
 		enable();
 	}
 
-	void AddMessage(MessageClass* message)
+	void AddMessage(TemplateMessageI2C<MessageMaxSize>* message)
 	{
 		IncomingMessage = *message;
 		IncomingMessageAvailable = true;
@@ -169,7 +167,7 @@ public:
 		return true;
 	}
 
-	void OnReceive(int length)
+	inline void OnReceive(int length)
 	{
 		if (length < 1 ||
 			length > TWI_RX_BUFFER_SIZE)
@@ -203,6 +201,7 @@ public:
 
 		IncomingMessageAvailable = true;
 		enable();
+		TimeStampI2CEvent();
 	}
 
 	void OnRequest()
@@ -211,6 +210,8 @@ public:
 		{
 			Wire.write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
+
+		TimeStampI2CEvent();
 	}
 
 	bool Callback()
