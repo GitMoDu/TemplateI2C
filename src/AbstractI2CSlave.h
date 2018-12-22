@@ -9,9 +9,10 @@
 #include <RingBufCPP.h>
 #include <TemplateMessageI2C.h>
 #include <I2CSlaveConstants.h>
-
 #include <Wire.h>
 
+//Basic messaging error tracking is nice, but it can be disabled with this property.
+#define I2C_SLAVE_COMMS_ERRORS_ENABLE
 
 class I2CInterruptTask : public Task
 {
