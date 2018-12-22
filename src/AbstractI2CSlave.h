@@ -390,6 +390,10 @@ private:
 			}
 		}
 
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+		Serial.println(F("Unable to process message"));
+#endif
+
 		return false;
 	}
 };
