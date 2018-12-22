@@ -56,20 +56,24 @@ private:
 	TemplateMessageI2C<MessageMaxSize> CurrentMessage;
 	///
 
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 	///Error and Status for this session.
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsOverflowMessage;
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsBadSizeMessage;
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsContentMessage;
-	TemplateMessageI2C<MessageMaxSize> IdMessage;
-	TemplateMessageI2C<MessageMaxSize> SerialMessage;
 	///
 
 	///Error and Status for this session.
 	volatile uint32_t MessageOverflows = 0;
 	volatile uint32_t MessageSizeErrors = 0;
 	volatile uint32_t MessageContentErrors = 0;
-
 	volatile bool MessageErrorReportNeedsUpdating = false;
+	///
+#endif
+
+	///Slave info messages.
+	TemplateMessageI2C<MessageMaxSize> IdMessage;
+	TemplateMessageI2C<MessageMaxSize> SerialMessage;
 	///
 
 protected:
@@ -85,23 +89,29 @@ protected:
 protected:
 	void OnMessageOverflowError()
 	{
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		MessageOverflows++;
 		MessageErrorReportNeedsUpdating = true;
 		enableIfNot();
+#endif
 	}
 
 	void OnMessageSizeError()
 	{
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		MessageSizeErrors++;
 		MessageErrorReportNeedsUpdating = true;
 		enableIfNot();
+#endif
 	}
 
 	void OnMessageContentError()
 	{
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		MessageContentErrors++;
 		MessageErrorReportNeedsUpdating = true;
 		enableIfNot();
+#endif
 	}
 
 public:
@@ -129,9 +139,11 @@ public:
 			Wire.onReceive(ReceiveEvent);
 			Wire.onRequest(RequestEvent);
 
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 			MessageOverflows = 0;
 			MessageSizeErrors = 0;
 			MessageContentErrors = 0;
+#endif
 
 			if (PrepareBaseMessages())
 			{
@@ -241,6 +253,7 @@ public:
 
 			return true;
 		}
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		else if (MessageErrorReportNeedsUpdating)
 		{
 			UpdateMessageErrorsReport();
@@ -248,6 +261,7 @@ public:
 
 			return true;
 		}
+#endif
 		else
 		{
 			disable();
@@ -270,6 +284,7 @@ private:
 		Success &= SerialMessage.Write(I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL);
 		Success &= IdMessage.Append32BitPayload(GetSerial());
 
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		//Message errors.
 		MessageErrorsOverflowMessage.Clear();
 		Success &= MessageErrorsOverflowMessage.Write(I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS);
@@ -283,22 +298,27 @@ private:
 		Success &= MessageErrorsContentMessage.Write(I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_CONTENT);
 		Success &= MessageErrorsContentMessage.Append32BitPayload(0);
 
+
 		if (Success)
 		{
 			//Updated with real values.
 			UpdateMessageErrorsReport();
 		}
+#endif
 
 		return Success;
 	}
 
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 	void UpdateMessageErrorsReport()
 	{
 		MessageErrorReportNeedsUpdating = false;
 		MessageErrorsOverflowMessage.Set32BitPayload(MessageOverflows);
 		MessageErrorsBadSizeMessage.Set32BitPayload(MessageSizeErrors);
 		MessageErrorsContentMessage.Set32BitPayload(MessageContentErrors);
+
 	}
+#endif
 
 	bool ProcessMessageInternal()
 	{
@@ -326,6 +346,8 @@ private:
 #endif
 			OutgoingMessage = &SerialMessage;
 			return true;
+
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS:
 			if (CurrentMessage.GetLength() != 1)
 			{
@@ -359,6 +381,7 @@ private:
 #endif
 			OutgoingMessage = &MessageErrorsContentMessage;
 			return true;
+#endif 
 		default:
 			if (CurrentMessage.GetHeader() < I2C_SLAVE_BASE_HEADER)
 			{
