@@ -9,12 +9,13 @@
 #include <RingBufCPP.h>
 #include <TemplateMessageI2C.h>
 #include <I2CSlaveConstants.h>
+#include <I2CSlaveDefinitions.h>
 #include <Wire.h>
 
-//Basic messaging error tracking is nice, but it can be disabled with this property.
-#define I2C_SLAVE_COMMS_ERRORS_ENABLE
-
-class I2CInterruptTask : public Task
+class I2CInterruptTask
+#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
+	: public Task
+#endif
 {
 protected:
 	volatile uint32_t LastI2CEventMillis = 0;
@@ -23,8 +24,11 @@ public:
 	virtual void OnReceive(int length) {}
 	virtual void OnRequest() {}
 
-	I2CInterruptTask(Scheduler* scheduler)
-		: Task(0, TASK_FOREVER, scheduler, true)
+#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
+	I2CInterruptTask(Scheduler* scheduler) : Task(0, TASK_FOREVER, scheduler, true)
+#else 
+	I2CInterruptTask()
+#endif
 	{
 	}
 
@@ -116,8 +120,12 @@ protected:
 	}
 
 public:
-	AbstractI2CSlaveTask(Scheduler* scheduler)
-		: I2CInterruptTask(scheduler)
+#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
+	AbstractI2CSlaveTask(Scheduler* scheduler) : I2CInterruptTask(scheduler)
+#else
+	AbstractI2CSlaveTask() : I2CInterruptTask()
+#endif
+	
 	{
 		I2CHandler = this;
 	}
@@ -175,10 +183,16 @@ public:
 		enable();
 	}
 
+#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	bool OnEnable()
 	{
 		return true;
 	}
+#else
+	void enable() {};
+	void enableIfNot() {};
+	void disable() {};
+#endif	
 
 	inline void OnReceive(int length)
 	{
