@@ -1,6 +1,6 @@
 // AbstractI2CSlave.h
 
-#ifndef _ABSTRACTI2CSLAVE_h
+#if !defined(_ABSTRACTI2CSLAVE_h) && defined(__AVR__)
 #define _ABSTRACTI2CSLAVE_h
 
 #define _TASK_OO_CALLBACKS
