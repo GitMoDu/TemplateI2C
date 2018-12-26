@@ -124,8 +124,7 @@ public:
 	AbstractI2CSlaveTask(Scheduler* scheduler) : I2CInterruptTask(scheduler)
 #else
 	AbstractI2CSlaveTask() : I2CInterruptTask()
-#endif
-	
+#endif	
 	{
 		I2CHandler = this;
 	}
