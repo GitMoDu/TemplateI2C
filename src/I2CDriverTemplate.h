@@ -65,6 +65,7 @@ protected:
 
 protected:
 	virtual uint32_t GetDeviceId() { return 0; }
+	virtual bool OnSetup() { return false; }
 
 public:
 	I2CDriverTemplate()
@@ -119,7 +120,7 @@ public:
 		return true;
 	}
 
-	virtual bool Setup(WireClass* i2CInstance, const uint8_t deviceAddress)
+	bool Setup(WireClass* i2CInstance, const uint8_t deviceAddress)
 	{
 		DeviceAddress = deviceAddress;
 
@@ -131,7 +132,7 @@ public:
 		}
 
 		I2CInstance = i2CInstance;
-		if (I2CInstance == nullptr)
+		if (I2CInstance == nullptr || !OnSetup())
 		{
 			return false;
 		}
