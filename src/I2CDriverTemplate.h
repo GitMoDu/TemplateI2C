@@ -1,6 +1,6 @@
 // I2CDriverTemplate.h
 
-#if !defined(_I2CDRIVERTEMPLATE_h)
+#ifndef _I2CDRIVERTEMPLATE_h
 #define _I2CDRIVERTEMPLATE_h
 
 #include <TemplateMessageI2C.h>
@@ -21,10 +21,14 @@ protected:
 protected:
 	inline bool WriteCurrentMessage()
 	{
+#ifndef MOCK_DRIVER
 		I2CInstance->beginTransmission(DeviceAddress);
 		I2CInstance->write((uint8_t *)Message.GetRaw(), Message.GetLength());
 
 		return I2CInstance->endTransmission() == 0;
+#else
+		return false;
+#endif
 	}
 
 	inline bool SendMessageHeader(const uint8_t header)
