@@ -90,10 +90,22 @@ private:
 
 protected:
 	///I2C Read output message.
+	
+	//TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
+	IMessageI2C* OutgoingMessage = nullptr;
+#else
 	TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
+#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
+	
 
 protected:
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
+	virtual bool ProcessMessage(IMessageI2C* currentMessage) {}
+#else
 	virtual bool ProcessMessage(TemplateMessageI2C<MessageMaxSize>* currentMessage) {}
+#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
+
 	virtual bool OnSetup() { return true; }
 	virtual uint32_t GetDeviceId() { return 0; }
 	virtual uint32_t GetSerial() { return 0; }
