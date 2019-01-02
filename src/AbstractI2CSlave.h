@@ -9,7 +9,6 @@
 #include <RingBufCPP.h>
 #include <TemplateMessageI2C.h>
 #include <I2CSlaveConstants.h>
-#include <I2CSlaveDefinitions.h>
 #include <Wire.h>
 
 class I2CInterruptTask
@@ -62,7 +61,7 @@ private:
 	///
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-	///Error and Status for this session.
+	///Error messages.
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsOverflowMessage;
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsBadSizeMessage;
 	TemplateMessageI2C<MessageMaxSize> MessageErrorsContentMessage;
