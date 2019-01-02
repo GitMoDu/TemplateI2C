@@ -13,5 +13,8 @@
 ////If you don't use a task scheduller, you need to manually the callback whenever possible.
 #define I2C_SLAVE_USE_TASK_SCHEDULER
 
+//Enable device reset.
+#define I2C_SLAVE_DEVICE_RESET_ENABLE
+
 #endif
 

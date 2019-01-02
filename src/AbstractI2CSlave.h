@@ -80,6 +80,14 @@ private:
 	TemplateMessageI2C<MessageMaxSize> SerialMessage;
 	///
 
+private:
+#ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
+#if !defined(__AVR__)
+#error ONLY AVR SUPPORTS RESET
+#endif
+	void(*ResetDevice) (void) = 0;
+#endif
+
 protected:
 	///I2C Read output message.
 	TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
@@ -358,6 +366,21 @@ private:
 #endif
 			OutgoingMessage = &SerialMessage;
 			return true;
+
+#ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
+		case I2C_SLAVE_BASE_HEADER_RESET_DEVICE:
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("Reset device, bye bye!"));
+#endif
+			ResetDevice();
+			//Never runs;
+			return true;
+#endif
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS:
