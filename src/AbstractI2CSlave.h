@@ -62,9 +62,15 @@ private:
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 	///Error messages.
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsOverflowMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsBadSizeMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsContentMessage;
+#else
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsOverflowMessage;
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsBadSizeMessage;
+	TemplateMessageI2C<MessageMaxSize> MessageErrorsContentMessage;
+#endif
 	///
 
 	///Error and Status for this session.
