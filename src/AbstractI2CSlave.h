@@ -329,7 +329,6 @@ private:
 		MessageErrorsOverflowMessage.Set32BitPayload(MessageOverflows);
 		MessageErrorsBadSizeMessage.Set32BitPayload(MessageSizeErrors);
 		MessageErrorsContentMessage.Set32BitPayload(MessageContentErrors);
-
 	}
 #endif
 
@@ -338,7 +337,7 @@ private:
 		switch (CurrentMessage.GetHeader())
 		{
 		case I2C_SLAVE_BASE_HEADER_DEVICE_ID:
-			if (CurrentMessage.GetLength() != 1)
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
 			{
 				OnMessageSizeError();
 				return true;
@@ -349,7 +348,7 @@ private:
 			OutgoingMessage = &IdMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL:
-			if (CurrentMessage.GetLength() != 1)
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
 			{
 				OnMessageSizeError();
 				return true;
@@ -362,7 +361,7 @@ private:
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS:
-			if (CurrentMessage.GetLength() != 1)
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
 			{
 				OnMessageSizeError();
 				return true;
@@ -384,7 +383,7 @@ private:
 			OutgoingMessage = &MessageErrorsBadSizeMessage;
 			return true;
 		case I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_CONTENT:
-			if (CurrentMessage.GetLength() != 1)
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
 			{
 				OnMessageSizeError();
 				return true;
