@@ -16,5 +16,8 @@
 //Enable device reset.
 #define I2C_SLAVE_DEVICE_RESET_ENABLE
 
+//Enable device health messages. Requires I2C_MESSAGE_IMPLEMENT_INTERFACE enabled.
+#define I2C_SLAVE_HEALTH_ENABLE
+
 #endif
 

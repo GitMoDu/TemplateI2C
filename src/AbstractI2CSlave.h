@@ -81,6 +81,19 @@ private:
 	///
 #endif
 
+#ifdef I2C_SLAVE_HEALTH_ENABLE
+	///Health for this session.
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
+	TemplateMessageI2C<I2C_MESSAGE_LENGTH_8BIT_X1> HealthReportMessage;
+	TemplateMessageI2C<I2C_MESSAGE_LENGTH_16BIT_X1> VoltageMessage;
+	TemplateMessageI2C<I2C_MESSAGE_LENGTH_16BIT_X1> TemperatureMessage;
+	///
+#else
+	TemplateMessageI2C<MessageMaxSize> HealthReportMessage;
+	TemplateMessageI2C<MessageMaxSize> VoltageMessage;
+	TemplateMessageI2C<MessageMaxSize> TemperatureMessage;
+#endif
+#endif
 	///Slave info messages.
 	TemplateMessageI2C<MessageMaxSize> IdMessage;
 	TemplateMessageI2C<MessageMaxSize> SerialMessage;
@@ -206,6 +219,23 @@ public:
 		IncomingMessageAvailable = true;
 		enable();
 	}
+
+#ifdef I2C_SLAVE_HEALTH_ENABLE
+	void SetHealthReportCode(const uint8_t healthCode)
+	{
+		HealthReportMessage.Set8BitPayload(healthCode);
+	}
+
+	void SetHealthVoltage(const uint16_t milliVolts)
+	{
+		VoltageMessage.Set16BitPayload(milliVolts);
+	}
+
+	void SetHealthTemperature(const uint16_t milliDegreesCelsius)
+	{
+		TemperatureMessage.Set16BitPayload(milliDegreesCelsius);
+	}
+#endif
 
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	bool OnEnable()
@@ -345,6 +375,20 @@ private:
 		}
 #endif
 
+#ifdef I2C_SLAVE_HEALTH_ENABLE
+		HealthReportMessage.Clear();
+		Success &= HealthReportMessage.Write(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
+		Success &= HealthReportMessage.Append8BitPayload(0);
+
+		VoltageMessage.Clear();
+		Success &= VoltageMessage.Write(I2C_SLAVE_BASE_HEADER_HEALTH_VOLTAGE);
+		Success &= VoltageMessage.Append16BitPayload(0);
+
+		TemperatureMessage.Clear();
+		Success &= TemperatureMessage.Write(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
+		Success &= TemperatureMessage.Append16BitPayload(0);
+#endif
+
 		return Success;
 	}
 
@@ -433,6 +477,42 @@ private:
 			Serial.println(F("GetMessageContentErrors"));
 #endif
 			OutgoingMessage = &MessageErrorsContentMessage;
+			return true;
+#endif 
+
+#ifdef I2C_SLAVE_HEALTH_ENABLE
+		case I2C_SLAVE_BASE_HEADER_HEALTH_REPORT:
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetHealthReport"));
+#endif
+			OutgoingMessage = &HealthReportMessage;
+			return true;
+		case I2C_SLAVE_BASE_HEADER_HEALTH_VOLTAGE:
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetHealthVoltage"));
+#endif
+			OutgoingMessage = &VoltageMessage;
+			return true;
+		case I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE:
+			if (CurrentMessage.GetLength() != I2C_MESSAGE_LENGTH_HEADER_ONLY)
+			{
+				OnMessageSizeError();
+				return true;
+			}
+#ifdef DEBUG_ABSTRACT_I2CSERVOS
+			Serial.println(F("GetTemperature"));
+#endif
+			OutgoingMessage = &TemperatureMessage;
 			return true;
 #endif 
 		default:
