@@ -69,13 +69,11 @@ public:
 		return Length;
 
 	}
-	///End of overloads.
 
 	uint8_t GetHeader()
 	{
 		return Data[0];
 	}
-
 
 	///Message building helpers.
 	void SetHeader(const uint8_t header)
