@@ -6,6 +6,7 @@
 //This feature is only useful if you have ROM to spare and want a clean way to composite a message class,
 // or just save RAM with variable size template message.
 //Otherwise, it's best turned off, as it simplifies the class object into a simples intance with no virtual calls.
+//Not using this feature forces your message objects to all be of the same (max) size.
 //#define I2C_MESSAGE_IMPLEMENT_INTERFACE
 
 //Basic messaging error tracking is nice, but it can be disabled with this property.
