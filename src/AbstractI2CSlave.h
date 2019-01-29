@@ -122,7 +122,7 @@ protected:
 #ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	virtual bool ProcessMessage(IMessageI2C* currentMessage) {}
 #else
-	virtual bool ProcessMessage(TemplateMessageI2C<MessageMaxSize>* currentMessage) {}
+	virtual bool ProcessMessage(TemplateMessageI2C<MessageMaxSize>* currentMessage) { return false; }
 #endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
 
 	virtual bool OnSetup() { return true; }
