@@ -248,7 +248,7 @@ public:
 	void disable() {};
 #endif	
 
-	inline void OnReceive(int length)
+	void OnReceive(int length)
 	{
 		if (length < 1 ||
 			length > TWI_RX_BUFFER_SIZE)
