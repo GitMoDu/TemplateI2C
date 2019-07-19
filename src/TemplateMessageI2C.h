@@ -29,7 +29,7 @@ public:
 		Length = 0;
 	}
 
-	uint8_t * GetRaw()
+	uint8_t* GetRaw()
 	{
 		return &Data[0];
 	}
@@ -87,17 +87,17 @@ public:
 
 	uint16_t Get8BitPayload(const uint8_t offset = 0)
 	{
-		if ((offset  + 1 )> GetLength() - sizeof(uint8_t))
+		if ((offset + 1) > GetLength() - sizeof(uint8_t))
 		{
 			return 0;
 		}
 
-		return Data[(offset  + 1 )];
+		return Data[(offset + 1)];
 	}
 
 	uint16_t Get16BitPayload(const uint8_t offset = 0)
 	{
-		if ((offset  + 1 ) > GetLength() - sizeof(uint16_t))
+		if ((offset + 1) > GetLength() - sizeof(uint16_t))
 		{
 			return 0;
 		}
@@ -109,7 +109,7 @@ public:
 
 	uint32_t Get32BitPayload(const uint8_t offset = 0)
 	{
-		if ((offset  + 1 ) > GetLength() - sizeof(uint32_t))
+		if ((offset + 1) > GetLength() - sizeof(uint32_t))
 		{
 			return 0;
 		}
@@ -141,19 +141,19 @@ public:
 
 	bool Set8BitPayload(const uint8_t value, const uint8_t offset = 0)
 	{
-		if ((offset  + 1 ) > GetLength() - sizeof(uint8_t))
+		if ((offset + 1) > GetLength() - sizeof(uint8_t))
 		{
 			return false;
 		}
 
-		Data[(offset  + 1 )] = value;
+		Data[(offset + 1)] = value;
 
 		return true;
 	}
 
 	bool Set16BitPayload(const uint16_t value, const uint8_t offset = 0)
 	{
-		if ((offset  + 1 ) > GetLength() - sizeof(uint16_t))
+		if ((offset + 1) > GetLength() - sizeof(uint16_t))
 		{
 			return false;
 		}
@@ -180,7 +180,7 @@ public:
 
 	bool Set32BitPayload(const uint32_t value, const uint8_t offset = 0)
 	{
-		if ((offset  + 1 ) > GetLength() - sizeof(uint32_t))
+		if ((offset + 1) > GetLength() - sizeof(uint32_t))
 		{
 			return false;
 		}
