@@ -195,7 +195,7 @@ public:
 			{
 				LastI2CEventMillis = 0;
 
-				return true;
+				return OnSetup();
 			}
 		}
 		else
