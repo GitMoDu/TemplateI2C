@@ -160,6 +160,20 @@ protected:
 #endif
 	}
 
+#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
+	void SetOutputMessage(IMessageI2C* outputMessage)
+#else
+	void SetOutputMessage(TemplateMessageI2C<MessageMaxSize>* outputMessage)
+#endif
+	{
+#ifdef ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
+		if (outputMessage != nullptr)//TODO: remove check optional.
+#endif
+		{
+			OutgoingMessage = outputMessage;
+		}
+	}
+
 public:
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	AbstractI2CSlaveTask(Scheduler* scheduler) : I2CInterruptTask(scheduler)
