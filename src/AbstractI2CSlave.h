@@ -116,14 +116,14 @@ private:
 
 protected:
 	///I2C Read output message.
-	
+
 	//TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
 #ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	IMessageI2C* OutgoingMessage = nullptr;
 #else
 	TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
 #endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
-	
+
 
 protected:
 #ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
@@ -325,7 +325,6 @@ public:
 		{
 			MessageQueue.addForce(IncomingMessage);
 			IncomingMessageAvailable = false;
-			enable();
 		}
 		else if (!MessageQueue.isEmpty())
 		{
@@ -340,25 +339,21 @@ public:
 				//Unrecognized message.
 				OnMessageContentError();
 			}
-			enable();
-
-			return true;
 		}
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		else if (MessageErrorReportNeedsUpdating)
 		{
 			UpdateMessageErrorsReport();
-			enable();
-
-			return true;
 		}
 #endif
 		else
 		{
 			disable();
+			return false;
 		}
 
-		return false;
+		enable();
+		return true;
 	}
 
 private:
