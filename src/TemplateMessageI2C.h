@@ -12,7 +12,7 @@
 
 
 //Template class for messages.
-template <const uint8_t MessageMaxSize>
+template <const uint8_t MessageMaxSize = 1 + sizeof(uint32_t)>
 class TemplateMessageI2C
 #ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	: public IMessageI2C
