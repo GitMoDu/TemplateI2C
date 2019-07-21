@@ -34,7 +34,7 @@ public:
 		return &Data[0];
 	}
 
-	bool Write(const uint8_t data)
+	bool Append(const uint8_t data)
 	{
 		if (Length < MessageMaxSize)
 		{
@@ -46,7 +46,7 @@ public:
 		return false;
 	}
 
-	bool Write(uint8_t* source, const uint8_t length)
+	bool Append(uint8_t* source, const uint8_t length)
 	{
 		if (Length < MessageMaxSize)
 		{
@@ -124,14 +124,14 @@ public:
 
 	bool Append8BitPayload(const uint8_t value)
 	{
-		return Write(value);
+		return Append(value);
 	}
 
 	bool Append16BitPayload(const uint16_t value)
 	{
 		MessageHelper16.uint = value;
 
-		if (!Write(MessageHelper16.array, sizeof(uint16_t)))
+		if (!Append(MessageHelper16.array, sizeof(uint16_t)))
 		{
 			return false;
 		}
@@ -170,7 +170,7 @@ public:
 	{
 		MessageHelper32.uint = value;
 
-		if (!Write(MessageHelper32.array, sizeof(uint32_t)))
+		if (!Append(MessageHelper32.array, sizeof(uint32_t)))
 		{
 			return false;
 		}
