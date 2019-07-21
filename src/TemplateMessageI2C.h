@@ -199,6 +199,21 @@ public:
 
 		return true;
 	}
+
+	bool SetPayload(uint8_t* source, const uint8_t length, const uint8_t offset = 0)
+	{
+		if ((offset + 1) > GetLength() - length)
+		{
+			return false;
+		}
+
+		for (uint8_t i = 0; i < length; i++)
+		{
+			Data[offset + 1 + i] = source[i];
+		}
+
+		return true;
+	}
 };
 #endif
 
