@@ -3,6 +3,9 @@
 #if !defined(_ABSTRACTI2CSLAVE_h) && defined(__AVR__)
 #define _ABSTRACTI2CSLAVE_h
 
+
+#define ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
+
 #define _TASK_OO_CALLBACKS
 
 #include <TaskSchedulerDeclarations.h>
@@ -287,7 +290,9 @@ public:
 
 	void OnRequest()
 	{
-		if (OutgoingMessage != nullptr)
+#ifdef ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
+		if (OutgoingMessage != nullptr)//TODO: remove check optional.
+#endif
 		{
 			Wire.write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
