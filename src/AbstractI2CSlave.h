@@ -293,7 +293,7 @@ public:
 		//We copy to a second buffer, so we can process it in the main loop safely, instead of in the interrupt.
 		while (length--)
 		{
-			if (!IncomingMessage.Write(Wire.read()))
+			if (!IncomingMessage.Append(Wire.read()))
 			{
 				OnMessageSizeError();
 
