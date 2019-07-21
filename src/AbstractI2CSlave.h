@@ -328,8 +328,7 @@ public:
 			if (!MessageQueue.pull(CurrentMessage))
 			{
 				//Something must have gone wrong.
-
-				return true;
+				OnMessageContentError();
 			}
 
 			if (!ProcessMessageInternal())
