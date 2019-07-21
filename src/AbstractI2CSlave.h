@@ -430,8 +430,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetId"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetId"));
 #endif
 			OutgoingMessage = &IdMessage;
 			return true;
@@ -441,8 +441,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetSerial"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetSerial"));
 #endif
 			OutgoingMessage = &SerialMessage;
 			return true;
@@ -454,8 +454,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("Reset device, bye bye!"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("Reset device, bye bye!"));
 #endif
 			ResetDevice();
 			//Never runs;
@@ -469,8 +469,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetMessageOverflows"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetMessageOverflows"));
 #endif
 			OutgoingMessage = &MessageErrorsOverflowMessage;
 			return true;
@@ -480,8 +480,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetMessageSizeErrors"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetMessageSizeErrors"));
 #endif
 			OutgoingMessage = &MessageErrorsBadSizeMessage;
 			return true;
@@ -491,8 +491,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetMessageContentErrors"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetMessageContentErrors"));
 #endif
 			OutgoingMessage = &MessageErrorsContentMessage;
 			return true;
@@ -505,8 +505,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetHealthReport"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetHealthReport"));
 #endif
 			OutgoingMessage = &HealthReportMessage;
 			return true;
@@ -516,8 +516,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetHealthVoltage"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetHealthVoltage"));
 #endif
 			OutgoingMessage = &VoltageMessage;
 			return true;
@@ -527,8 +527,8 @@ private:
 				OnMessageSizeError();
 				return true;
 			}
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-			Serial.println(F("GetTemperature"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+			DebugSerial.println(F("GetTemperature"));
 #endif
 			OutgoingMessage = &TemperatureMessage;
 			return true;
