@@ -3,6 +3,10 @@
 #if !defined(_ABSTRACTI2CSLAVE_h) && defined(__AVR__)
 #define _ABSTRACTI2CSLAVE_h
 
+#define DEBUG_ABSTRACT_I2CSLAVE
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+#define DebugSerial Serial
+#endif
 
 #define ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
 
@@ -540,8 +544,8 @@ private:
 			}
 		}
 
-#ifdef DEBUG_ABSTRACT_I2CSERVOS
-		Serial.println(F("Unable to process message"));
+#ifdef DEBUG_ABSTRACT_I2CSLAVE
+		DebugSerial.println(F("Unable to process message"));
 #endif
 
 		return false;
