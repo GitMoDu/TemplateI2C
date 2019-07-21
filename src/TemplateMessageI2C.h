@@ -34,6 +34,11 @@ public:
 		return &Data[0];
 	}
 
+	void SetLength(const uint8_t length)
+	{
+		Length = length;
+	}
+
 	bool Append(const uint8_t data)
 	{
 		if (Length < MessageMaxSize)
