@@ -6,79 +6,47 @@
 #include <TemplateMessageI2C.h>
 #include <I2CSlaveConstants.h>
 
-#define I2C_DRIVER_TEMPLATE_MIN_MICROS_BETWEEN_MESSAGE 100
-
-template <typename WireClass, const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN>
+template <typename WireClass, 
+	const uint8_t DeviceAddress, 
+	const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN>
 class I2CDriverTemplate
 {
 private:
-	uint8_t DeviceAddress = 0;
 	WireClass* I2CInstance = nullptr;
 
 protected:
-	TemplateMessageI2C<MessageMaxSize> Message;
+	TemplateMessageI2C<MessageMaxSize> OutgoingMessage;
+	TemplateMessageI2C<MessageMaxSize> IncomingMessage;
 
-protected:
-	inline bool WriteCurrentMessage()
-	{
-#ifndef MOCK_DRIVER
-		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write((uint8_t *)Message.GetRaw(), Message.GetLength());
-
-		return I2CInstance->endTransmission() == 0;
-#else
-		return false;
-#endif
-	}
-
-	inline bool SendMessageHeader(const uint8_t header)
-	{
-		Message.Clear();
-		Message.SetHeader(header);
-
-		return WriteCurrentMessage();
-	}
-
-	inline bool SendMessageDual16(const uint8_t header, uint16_t value1, uint16_t value2)
-	{
-		Message.Clear();
-		Message.SetHeader(header);
-		Message.Set16BitPayload(0, value1);
-		Message.Set16BitPayload(2, value2);
-
-		return WriteCurrentMessage();
-	}
-
-	inline bool SendMessageSingle16(const uint8_t header, uint16_t value)
-	{
-		Message.Clear();
-		Message.SetHeader(header);
-		Message.Set16BitPayload(0, value);
-
-		return WriteCurrentMessage();
-	}
-
-	inline bool SendMessageSingle32(const uint8_t header, uint32_t value)
-	{
-		Message.Clear();
-		Message.SetHeader(header);
-		Message.Set32BitPayload(value);
-
-		return WriteCurrentMessage();
-	}
-
-protected:
+public:
 	virtual uint32_t GetDeviceId() { return 0; }
-	virtual bool OnSetup() { return false; }
+
+protected:
+	virtual bool OnSetup() { return true; }
 
 public:
 	I2CDriverTemplate()
 	{
 	}
 
+	bool GetResponse(const uint8_t requestSize)
+	{
+		I2CInstance->requestFrom(DeviceAddress, requestSize);
+
+		while (I2CInstance->available())
+		{
+			if (!IncomingMessage.Append(I2CInstance->read()))
+			{
+				break;
+			}
+		}
+
+		return IncomingMessage.GetLength() == requestSize;
+	}
+
 	bool ValidateIC()
 	{
-#ifndef MOCK_DRIVER
+#ifndef MOCK_I2C_DRIVER
 		if (!SendMessageHeader(I2C_SLAVE_BASE_HEADER_DEVICE_ID))
 		{
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE
@@ -87,57 +55,58 @@ public:
 			return false;
 		}
 
-		Message.Clear();
-		delayMicroseconds(I2C_DRIVER_TEMPLATE_MIN_MICROS_BETWEEN_MESSAGE);
-		I2CInstance->requestFrom((uint8_t)DeviceAddress, (uint8_t)5);
+		IncomingMessage.Clear();
+		delayMicroseconds(500);
+		I2CInstance->requestFrom(DeviceAddress, (uint8_t)I2C_MESSAGE_LENGTH_32BIT_X1);
 
 		while (I2CInstance->available())
 		{
-			if (!Message.Write(I2CInstance->read()))
+			if (!IncomingMessage.Append(I2CInstance->read()))
 			{
 				break;
 			}
 		}
 
-		if (Message.GetLength() != 5 ||
-			Message.GetHeader() != I2C_SLAVE_BASE_HEADER_DEVICE_ID)
+		if (IncomingMessage.GetLength() != I2C_MESSAGE_LENGTH_32BIT_X1 ||
+			IncomingMessage.GetHeader() != I2C_SLAVE_BASE_HEADER_DEVICE_ID)
 		{
 			//Invalid return message.
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE
 			Serial.print(F("Invalid return message. Size: "));
-			Serial.print(Message.GetLength());
+			Serial.print(IncomingMessage.GetLength());
 			Serial.print(F(" Header: "));
-			Serial.println(Message.GetHeader());
+			Serial.println(IncomingMessage.GetHeader());
 #endif
 			return false;
 		}
 
-		if (Message.Get32BitPayload(0) != GetDeviceId())
+		if (IncomingMessage.Get32BitPayload(0) != GetDeviceId())
 		{
 			//Invalid expected version code.
 			return false;
 		}
 #endif
 
-		delayMicroseconds(I2C_DRIVER_TEMPLATE_MIN_MICROS_BETWEEN_MESSAGE);
-
 		return true;
 	}
 
-	bool Setup(WireClass* i2CInstance, const uint8_t deviceAddress)
+	bool Setup(WireClass* i2CInstance)
 	{
-		DeviceAddress = deviceAddress;
-
 		if (DeviceAddress <= I2C_ADDRESS_MIN_VALUE ||
 			DeviceAddress > I2C_ADDRESS_MAX_VALUE)
 		{
-			//Invalid I2C Address
+#ifdef DEBUG_I2C_DRIVER_TEMPLATE
+			Serial.println(F("Invalid I2C Address."));
+#endif
 			return false;
 		}
 
 		I2CInstance = i2CInstance;
 		if (I2CInstance == nullptr || !OnSetup())
 		{
+#ifdef DEBUG_I2C_DRIVER_TEMPLATE
+			Serial.println(F("Device Not Setup."));
+#endif
 			return false;
 		}
 
@@ -152,10 +121,63 @@ public:
 			}
 			else
 			{
+#ifdef DEBUG_I2C_DRIVER_TEMPLATE
+				Serial.println(F("Device Not detected."));
+#endif
 				delay(50);
 			}
 		}
 		return false;
+	}
+
+
+protected:
+	inline bool WriteCurrentMessage()
+	{
+#ifndef MOCK_I2C_DRIVER
+		I2CInstance->beginTransmission(DeviceAddress);
+		I2CInstance->write((uint8_t*)OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
+
+		return I2CInstance->endTransmission() == 0;
+#else
+		return true;
+#endif		
+	}
+
+	inline bool SendMessageHeader(const uint8_t header)
+	{
+		OutgoingMessage.Clear();
+		OutgoingMessage.SetHeader(header);
+
+		return WriteCurrentMessage();
+	}
+
+	inline bool SendMessageDual16(const uint8_t header, uint16_t value1, uint16_t value2)
+	{
+		OutgoingMessage.Clear();
+		OutgoingMessage.SetHeader(header);
+		OutgoingMessage.Append16BitPayload(value1);
+		OutgoingMessage.Append16BitPayload(value2);
+
+		return WriteCurrentMessage();
+	}
+
+	inline bool SendMessageSingle16(const uint8_t header, uint16_t value)
+	{
+		OutgoingMessage.Clear();
+		OutgoingMessage.SetHeader(header);
+		OutgoingMessage.Append16BitPayload(value);
+
+		return WriteCurrentMessage();
+	}
+
+	inline bool SendMessageSingle32(const uint8_t header, uint32_t value)
+	{
+		OutgoingMessage.Clear();
+		OutgoingMessage.SetHeader(header);
+		OutgoingMessage.Append32BitPayload(value);
+
+		return WriteCurrentMessage();
 	}
 };
 #endif
