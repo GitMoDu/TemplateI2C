@@ -56,7 +56,7 @@ void RequestEvent()
 	I2CHandler->OnRequest();
 }
 
-template <const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
+template <const uint8_t DeviceAddress, const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN, const uint8_t ReceiverQueueDepth = I2C_MESSAGE_RECEIVER_QUEUE_DEFAULT_DEPTH>
 class AbstractI2CSlaveTask : public I2CInterruptTask
 {
 private:
@@ -188,11 +188,11 @@ public:
 		I2CHandler = this;
 	}
 
-	bool Setup(const uint8_t deviceAddress)
+	bool Setup()
 	{
 		if (I2CHandler != nullptr &&
-			deviceAddress > I2C_ADDRESS_MIN_VALUE
-			&& deviceAddress < I2C_ADDRESS_MAX_VALUE)
+			DeviceAddress > I2C_ADDRESS_MIN_VALUE
+			&& DeviceAddress < I2C_ADDRESS_MAX_VALUE)
 		{
 			///Overzealous I2C Setup.
 			pinMode(PIN_WIRE_SCL, INPUT);
@@ -202,7 +202,7 @@ public:
 			delay(1);
 			///
 
-			Wire.begin(deviceAddress); //Join i2c bus with address.
+			Wire.begin(DeviceAddress); //Join i2c bus with address.
 			Wire.onReceive(ReceiveEvent);
 			Wire.onRequest(RequestEvent);
 
