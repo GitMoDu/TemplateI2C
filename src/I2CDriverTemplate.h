@@ -12,6 +12,7 @@ template <typename WireClass,
 class I2CDriverTemplate
 {
 private:
+	static const uint8_t SetupRetryMaxCount = 3;
 	WireClass* I2CInstance = nullptr;
 
 protected:
@@ -110,7 +111,7 @@ public:
 			return false;
 		}
 
-		for (uint8_t i = 0; i < 2; i++)
+		for (uint8_t i = 0; i < SetupRetryMaxCount; i++)
 		{
 			if (ValidateIC())
 			{
@@ -124,7 +125,6 @@ public:
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE
 				Serial.println(F("Device Not detected."));
 #endif
-				delay(50);
 			}
 		}
 		return false;
