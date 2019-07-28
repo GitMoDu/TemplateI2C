@@ -136,7 +136,7 @@ protected:
 	{
 #ifndef MOCK_I2C_DRIVER
 		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write((uint8_t*)OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
+		I2CInstance->write(OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
 
 		return I2CInstance->endTransmission() == 0;
 #else
