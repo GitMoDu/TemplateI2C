@@ -3,7 +3,6 @@
 #define DEBUG_I2C
 
 #define _TASK_OO_CALLBACKS
-#define I2C_DRIVER_ASYNC_ENABLE
 
 #define SERIAL_BAUD_RATE 115200
 #define DEBUG_TESTS
@@ -12,16 +11,10 @@
 
 #include <Arduino.h>
 #include <TaskScheduler.h>
-
-#include <I2CDriverTemplateTask.h>
-#include "ExampleSlaveApi.h"
-
 #include <Wire.h>
-#if defined(__AVR_ATmega168__) ||defined(__AVR_ATmega168P__) ||defined(__AVR_ATmega328P__)
-#define WireType TwoWire
-#else
-#define WireType Wire
-#endif
+
+#include <I2CAsyncDriverTemplate.h>
+#include "ExampleSlaveApi.h"
 
 
 ///Process scheduler.
@@ -29,34 +22,32 @@ Scheduler SchedulerBase;
 ///
 
 ///I2C ExampleDriverTask
-//template<typename WireClass>
-//class ExampleI2CDriverTask : public I2CDriverTemplateTask<WireClass, ExampleApi::DeviceAddress>
-//{
-//
-//public:
-//	ExampleI2CDriverTask(Scheduler* scheduler) : I2CDriverTemplateTask<WireClass, ExampleApi::DeviceAddress>()
-//	{
-//
-//	}
-//
-//	bool OnSetup()
-//	{
-//		return true;
-//	}
-//
-//	void Start()
-//	{
-//		SendMessageHeader(ExampleApi::RequestHeader::Start);
-//	}
-//
-//	void Stop()
-//	{
-//		SendMessageHeader(ExampleApi::RequestHeader::Stop);
-//	}
-//};
+class ExampleI2CAsyncDriver : public I2CAsyncDriverTemplate<TwoWire, ExampleApi::DeviceAddress>
+{
+public:
+	ExampleI2CAsyncDriver(Scheduler* scheduler) : I2CAsyncDriverTemplate<TwoWire, ExampleApi::DeviceAddress>(scheduler)
+	{
+	}
 
-//ExampleI2CDriverTask<WireType> ExampleDriver(&SchedulerBase);
-I2CDriverTemplateTask<WireType, ExampleApi::DeviceAddress> ExampleDriver(&SchedulerBase);
+public:
+	uint32_t GetDeviceId() { return ExampleApi::DeviceId; }
+
+
+	void Start()
+	{
+		SendMessageHeader(ExampleApi::RequestHeader::Start);
+	}
+
+	void Stop()
+	{
+		SendMessageHeader(ExampleApi::RequestHeader::Stop);
+	}
+
+protected:
+	bool OnSetup() { return true; }
+};
+
+ExampleI2CAsyncDriver ExampleAsyncDriver(&SchedulerBase);
 ///
 
 
@@ -86,7 +77,7 @@ void setup()
 	Wire.begin();
 #endif
 
-	if (!ExampleDriver.Setup(&Wire))
+	if (!ExampleAsyncDriver.Setup(&Wire))
 	{
 #ifdef DEBUG_LOG
 		Serial.println(F("ExampleDriverTask Setup Failed."));
@@ -101,7 +92,6 @@ void setup()
 #ifdef DEBUG_TESTS
 	InjectTestMessages();
 #endif
-
 }
 
 void loop()
@@ -115,9 +105,7 @@ void InjectTestMessages()
 	Serial.println(F("Injecting test messages."));
 
 	delay(1);
-	//ExampleDriver.Start();
-	delay(10000);
-	//ExampleDriver.Stop();
+	ExampleAsyncDriver.Start();
+	ExampleAsyncDriver.Stop();
 }
 #endif
-

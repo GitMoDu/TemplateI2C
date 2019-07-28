@@ -21,6 +21,8 @@ public:
 
 	const static uint8_t DeviceAddress = 0x25;
 
+	const static uint32_t MicrosBetweenMessages = 200;
+
 };
 #endif
 
