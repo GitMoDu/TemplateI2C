@@ -144,7 +144,7 @@ protected:
 #endif		
 	}
 
-	inline bool SendMessageHeader(const uint8_t header)
+	bool SendMessageHeader(const uint8_t header)
 	{
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
@@ -152,7 +152,7 @@ protected:
 		return WriteCurrentMessage();
 	}
 
-	inline bool SendMessageDual16(const uint8_t header, uint16_t value1, uint16_t value2)
+	bool SendMessageDual16(const uint8_t header, uint16_t value1, uint16_t value2)
 	{
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
@@ -162,7 +162,7 @@ protected:
 		return WriteCurrentMessage();
 	}
 
-	inline bool SendMessageSingle16(const uint8_t header, uint16_t value)
+	bool SendMessageSingle16(const uint8_t header, uint16_t value)
 	{
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
@@ -171,7 +171,7 @@ protected:
 		return WriteCurrentMessage();
 	}
 
-	inline bool SendMessageSingle32(const uint8_t header, uint32_t value)
+	bool SendMessageSingle32(const uint8_t header, uint32_t value)
 	{
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
