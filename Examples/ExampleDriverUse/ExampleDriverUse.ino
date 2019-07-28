@@ -13,18 +13,11 @@
 #include <I2CDriverTemplate.h>
 #include <Wire.h>
 
-#if defined(__AVR_ATmega168__) ||defined(__AVR_ATmega168P__) ||defined(__AVR_ATmega328P__)
-#define WireType TwoWire
-#else
-#define WireType Wire
-#endif
-
 ///I2C ExampleDriver
-template<typename WireClass>
-class ExampleI2CDriver : public I2CDriverTemplate<WireClass, ExampleApi::DeviceAddress>
+class ExampleI2CDriver : public I2CDriverTemplate<TwoWire, ExampleApi::DeviceAddress>
 {
 public:
-	ExampleI2CDriver() : I2CDriverTemplate<WireClass, ExampleApi::DeviceAddress>()
+	ExampleI2CDriver() : I2CDriverTemplate<TwoWire, ExampleApi::DeviceAddress>()
 	{
 	}
 
@@ -47,7 +40,7 @@ protected:
 };
 
 
-ExampleI2CDriver<WireType> ExampleDriver;
+ExampleI2CDriver ExampleDriver;
 ///
 
 void Halt()
