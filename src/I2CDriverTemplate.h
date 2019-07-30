@@ -28,7 +28,7 @@ protected:
 public:
 	I2CDriverTemplate(WireClass* i2cInstance)
 	{
-		I2CInstance = i2CInstance;
+		I2CInstance = i2cInstance;
 	}
 
 	bool GetResponse(const uint8_t requestSize)
