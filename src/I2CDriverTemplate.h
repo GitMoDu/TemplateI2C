@@ -26,8 +26,9 @@ protected:
 	virtual bool OnSetup() { return true; }
 
 public:
-	I2CDriverTemplate()
+	I2CDriverTemplate(WireClass* i2cInstance)
 	{
+		I2CInstance = i2CInstance;
 	}
 
 	bool GetResponse(const uint8_t requestSize)
@@ -91,7 +92,7 @@ public:
 		return true;
 	}
 
-	bool Setup(WireClass* i2CInstance)
+	bool Setup()
 	{
 		if (DeviceAddress <= I2C_ADDRESS_MIN_VALUE ||
 			DeviceAddress > I2C_ADDRESS_MAX_VALUE)
@@ -102,7 +103,6 @@ public:
 			return false;
 		}
 
-		I2CInstance = i2CInstance;
 		if (I2CInstance == nullptr || !OnSetup())
 		{
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE

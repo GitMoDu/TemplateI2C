@@ -44,8 +44,9 @@ public:
 	virtual uint32_t GetDeviceId() { return 0; }
 
 public:
-	I2CAsyncDriverTemplate(Scheduler* scheduler) : Task(MinDelayMillis, TASK_FOREVER, scheduler, false)
+	I2CAsyncDriverTemplate(Scheduler* scheduler, WireClass* i2cInstance) : Task(MinDelayMillis, TASK_FOREVER, scheduler, false)
 	{
+		I2CInstance = i2cInstance;
 	}
 
 	bool OnEnable()
@@ -76,7 +77,7 @@ public:
 		return false;
 	}
 
-	bool Setup(WireClass* i2CInstance)
+	bool Setup()
 	{
 		if (DeviceAddress <= I2C_ADDRESS_MIN_VALUE ||
 			DeviceAddress > I2C_ADDRESS_MAX_VALUE)
@@ -87,7 +88,6 @@ public:
 			return false;
 		}
 
-		I2CInstance = i2CInstance;
 		if (I2CInstance == nullptr || !OnSetup())
 		{
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE
