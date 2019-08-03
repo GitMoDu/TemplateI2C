@@ -8,7 +8,6 @@
 #define DebugSerial Serial
 #endif
 
-#define ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
 
 #define _TASK_OO_CALLBACKS
 
@@ -162,9 +161,7 @@ protected:
 	void SetOutputMessage(TemplateMessageI2C<MessageMaxSize>* outputMessage)
 #endif
 	{
-#ifdef ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
 		if (outputMessage != nullptr)//TODO: remove check optional.
-#endif
 		{
 			OutgoingMessage = outputMessage;
 		}
@@ -297,13 +294,7 @@ public:
 
 	void OnRequest()
 	{
-#ifdef ABSTRACT_I2C_SLAVE_USE_OUTPUT_CHECK
-		if (OutgoingMessage != nullptr)//TODO: remove check optional.
-#endif
-		{
-			Wire.write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
-		}
-
+		Wire.write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 	}
 
 	bool Callback()
