@@ -362,26 +362,26 @@ private:
 		bool Success = true;
 		//Id.
 		IdMessage.Clear();
-		Success &= IdMessage.Append(I2C_SLAVE_BASE_HEADER_DEVICE_ID);
+		IdMessage.SetHeader(I2C_SLAVE_BASE_HEADER_DEVICE_ID);
 		Success &= IdMessage.Append32BitPayload(GetDeviceId());
 
 		//Serial.
 		SerialMessage.Clear();
-		Success &= SerialMessage.Append(I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL);
+		SerialMessage.SetHeader(I2C_SLAVE_BASE_HEADER_DEVICE_SERIAL);
 		Success &= IdMessage.Append32BitPayload(GetSerial());
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		//Message errors.
 		MessageErrorsOverflowMessage.Clear();
-		Success &= MessageErrorsOverflowMessage.Append(I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS);
+		MessageErrorsOverflowMessage.SetHeader(I2C_SLAVE_BASE_HEADER_MESSAGE_OVERFLOWS);
 		Success &= MessageErrorsOverflowMessage.Append32BitPayload(0);
 
 		MessageErrorsBadSizeMessage.Clear();
-		Success &= MessageErrorsBadSizeMessage.Append(I2C_SLAVE_BASE_HEADER_MESSAGE_BAD_SIZE);
+		MessageErrorsBadSizeMessage.SetHeader(I2C_SLAVE_BASE_HEADER_MESSAGE_BAD_SIZE);
 		Success &= MessageErrorsBadSizeMessage.Append32BitPayload(0);
 
 		MessageErrorsContentMessage.Clear();
-		Success &= MessageErrorsContentMessage.Append(I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_CONTENT);
+		MessageErrorsContentMessage.SetHeader(I2C_SLAVE_BASE_HEADER_MESSAGE_ERROR_CONTENT);
 		Success &= MessageErrorsContentMessage.Append32BitPayload(0);
 
 
@@ -394,15 +394,15 @@ private:
 
 #ifdef I2C_SLAVE_HEALTH_ENABLE
 		HealthReportMessage.Clear();
-		Success &= HealthReportMessage.Append(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
+		HealthReportMessage.SetHeader(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
 		Success &= HealthReportMessage.Append8BitPayload(0);
 
 		VoltageMessage.Clear();
-		Success &= VoltageMessage.Append(I2C_SLAVE_BASE_HEADER_HEALTH_VOLTAGE);
+		VoltageMessage.SetHeader(I2C_SLAVE_BASE_HEADER_HEALTH_VOLTAGE);
 		Success &= VoltageMessage.Append16BitPayload(0);
 
 		TemperatureMessage.Clear();
-		Success &= TemperatureMessage.Append(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
+		TemperatureMessage.SetHeader(I2C_SLAVE_BASE_HEADER_HEALTH_TEMPERATURE);
 		Success &= TemperatureMessage.Append16BitPayload(0);
 #endif
 
