@@ -23,9 +23,6 @@ class I2CInterruptTask
 	: public Task
 #endif
 {
-protected:
-	volatile uint32_t LastI2CEventMillis = 0;
-
 public:
 	virtual void OnReceive(int length) {}
 	virtual void OnRequest() {}
@@ -36,11 +33,6 @@ public:
 	I2CInterruptTask()
 #endif
 	{
-	}
-
-	inline void TimeStampI2CEvent()
-	{
-		LastI2CEventMillis = millis();
 	}
 };
 
@@ -214,8 +206,6 @@ public:
 
 			if (PrepareBaseMessages())
 			{
-				LastI2CEventMillis = 0;
-
 				return OnSetup();
 			}
 		}
@@ -298,7 +288,6 @@ public:
 
 		IncomingMessageAvailable = true;
 		enable();
-		TimeStampI2CEvent();
 	}
 
 	void OnRequest()
@@ -310,7 +299,6 @@ public:
 			Wire.write(OutgoingMessage->GetRaw(), (size_t)min(TWI_TX_BUFFER_SIZE, OutgoingMessage->GetLength()));
 		}
 
-		TimeStampI2CEvent();
 	}
 
 	bool Callback()
