@@ -267,6 +267,11 @@ public:
 			//Sanity-check.
 			OnMessageSizeError();
 
+			while (length--)
+			{
+				Wire.read();
+			}
+
 			return;
 		}
 
