@@ -272,7 +272,7 @@ public:
 	void OnReceive(int length)
 	{
 		if (length < 1 ||
-			length > TWI_RX_BUFFER_SIZE)
+			length > min(MessageMaxSize, TWI_RX_BUFFER_SIZE))
 		{
 			//Sanity-check.
 			OnMessageSizeError();
