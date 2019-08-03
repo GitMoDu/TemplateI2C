@@ -60,15 +60,9 @@ private:
 
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 	///Error messages.
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsOverflowMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsBadSizeMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> MessageErrorsContentMessage;
-#else
-	TemplateMessageI2C<MessageMaxSize> MessageErrorsOverflowMessage;
-	TemplateMessageI2C<MessageMaxSize> MessageErrorsBadSizeMessage;
-	TemplateMessageI2C<MessageMaxSize> MessageErrorsContentMessage;
-#endif
 	///
 
 	///Error and Status for this session.
@@ -81,20 +75,15 @@ private:
 
 #ifdef I2C_SLAVE_HEALTH_ENABLE
 	///Health for this session.
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_8BIT_X1> HealthReportMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_16BIT_X1> VoltageMessage;
 	TemplateMessageI2C<I2C_MESSAGE_LENGTH_16BIT_X1> TemperatureMessage;
 	///
-#else
-	TemplateMessageI2C<MessageMaxSize> HealthReportMessage;
-	TemplateMessageI2C<MessageMaxSize> VoltageMessage;
-	TemplateMessageI2C<MessageMaxSize> TemperatureMessage;
-#endif
+
 #endif
 	///Slave info messages.
-	TemplateMessageI2C<MessageMaxSize> IdMessage;
-	TemplateMessageI2C<MessageMaxSize> SerialMessage;
+	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> IdMessage;
+	TemplateMessageI2C<I2C_MESSAGE_LENGTH_32BIT_X1> SerialMessage;
 	///
 
 private:
@@ -107,22 +96,11 @@ private:
 
 protected:
 	///I2C Read output message.
-
-	//TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	IMessageI2C* OutgoingMessage = nullptr;
-#else
-	TemplateMessageI2C<MessageMaxSize>* OutgoingMessage = nullptr;
-#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
 
 
 protected:
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	virtual bool ProcessMessage(IMessageI2C* currentMessage) {}
-#else
-	virtual bool ProcessMessage(TemplateMessageI2C<MessageMaxSize>* currentMessage) { return false; }
-#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
-
 	virtual bool OnSetup() { return true; }
 	virtual uint32_t GetDeviceId() { return 0; }
 	virtual uint32_t GetSerial() { return 0; }
@@ -155,13 +133,9 @@ protected:
 #endif
 	}
 
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 	void SetOutputMessage(IMessageI2C* outputMessage)
-#else
-	void SetOutputMessage(TemplateMessageI2C<MessageMaxSize>* outputMessage)
-#endif
 	{
-		if (outputMessage != nullptr)//TODO: remove check optional.
+		if (outputMessage != nullptr)
 		{
 			OutgoingMessage = outputMessage;
 		}

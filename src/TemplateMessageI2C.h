@@ -6,78 +6,21 @@
 #include <stdint.h>
 #include <I2CSlaveDefinitions.h>
 #include <MessageHelper.h>
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
 #include <IMessageI2C.h>
-#endif
 
 
 //Template class for messages.
 template <const uint8_t MessageMaxSize = 1 + sizeof(uint32_t)>
-class TemplateMessageI2C
-#ifdef I2C_MESSAGE_IMPLEMENT_INTERFACE
-	: public IMessageI2C
-#endif // I2C_MESSAGE_IMPLEMENT_INTERFACE
+class TemplateMessageI2C : public IMessageI2C
 {
 protected:
 	uint8_t Data[MessageMaxSize];
-	uint8_t Length = 0;
 
 public:
 	///Overloads.
-	void Clear()
-	{
-		Length = 0;
-	}
-
 	uint8_t* GetRaw()
 	{
 		return &Data[0];
-	}
-
-	void SetLength(const uint8_t length)
-	{
-		Length = length;
-	}
-
-	bool Append(const uint8_t data)
-	{
-		if (Length < MessageMaxSize)
-		{
-			Data[Length++] = data;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	bool Append(uint8_t* source, const uint8_t length)
-	{
-		if (Length < MessageMaxSize)
-		{
-			for (uint8_t i = 0; i < length; i++)
-			{
-				Data[Length++] = source[i];
-
-				if (Length > MessageMaxSize)
-				{
-					return false;
-				}
-			}
-		}
-
-		return true;
-	}
-
-	uint8_t GetLength()
-	{
-		return Length;
-
-	}
-
-	uint8_t GetHeader()
-	{
-		return Data[0];
 	}
 
 	///Message building helpers.
@@ -127,18 +70,72 @@ public:
 		return MessageHelper32.uint;
 	}
 
+	void FastWrite(const uint8_t value)
+	{
+		Data[Length++] = value;
+	}	
+	
+	bool AppendPayload(uint8_t* source, const uint8_t length)
+	{
+		if (Length < MessageMaxSize &&
+			Length > 0)
+		{
+			for (uint8_t i = 0; i < length; i++)
+			{
+				Data[Length++] = source[i];
+
+				if (Length > MessageMaxSize)
+				{
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
 	bool Append8BitPayload(const uint8_t value)
 	{
-		return Append(value);
+		if (Length < MessageMaxSize &&
+			Length > 0)
+		{
+			Data[Length++] = value;
+
+			return true;
+		}
+
+		return false;
 	}
 
 	bool Append16BitPayload(const uint16_t value)
 	{
 		MessageHelper16.uint = value;
 
-		if (!Append(MessageHelper16.array, sizeof(uint16_t)))
+		return AppendPayload(MessageHelper16.array, sizeof(uint16_t));
+	}
+
+	bool Append32BitPayload(const uint32_t value)
+	{
+		MessageHelper32.uint = value;
+
+		if (!AppendPayload(MessageHelper32.array, sizeof(uint32_t)))
 		{
 			return false;
+		}
+
+		return true;
+	}
+
+	bool SetPayload(uint8_t* source, const uint8_t length, const uint8_t offset = 0)
+	{
+		if ((offset + 1) > GetLength() - length)
+		{
+			return false;
+		}
+
+		for (uint8_t i = 0; i < length; i++)
+		{
+			Data[offset + 1 + i] = source[i];
 		}
 
 		return true;
@@ -171,18 +168,6 @@ public:
 		return true;
 	}
 
-	bool Append32BitPayload(const uint32_t value)
-	{
-		MessageHelper32.uint = value;
-
-		if (!Append(MessageHelper32.array, sizeof(uint32_t)))
-		{
-			return false;
-		}
-
-		return true;
-	}
-
 	bool Set32BitPayload(const uint32_t value, const uint8_t offset = 0)
 	{
 		if ((offset + 1) > GetLength() - sizeof(uint32_t))
@@ -196,21 +181,6 @@ public:
 		Data[offset + 2] = MessageHelper32.array[1];
 		Data[offset + 3] = MessageHelper32.array[2];
 		Data[offset + 4] = MessageHelper32.array[3];
-
-		return true;
-	}
-
-	bool SetPayload(uint8_t* source, const uint8_t length, const uint8_t offset = 0)
-	{
-		if ((offset + 1) > GetLength() - length)
-		{
-			return false;
-		}
-
-		for (uint8_t i = 0; i < length; i++)
-		{
-			Data[offset + 1 + i] = source[i];
-		}
 
 		return true;
 	}
