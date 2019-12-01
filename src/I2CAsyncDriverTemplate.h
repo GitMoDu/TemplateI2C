@@ -131,6 +131,19 @@ protected:
 #endif		
 	}
 
+	inline bool GetResponseNow(const uint8_t requestSize)
+	{
+		I2CInstance->requestFrom(DeviceAddress, requestSize);
+
+		IncomingMessage.Clear();
+		while (I2CInstance->available())
+		{
+			IncomingMessage.FastWrite(I2CInstance->read());
+		}
+
+		return IncomingMessage.GetLength() == requestSize;
+	}
+
 	inline bool CanSendNow()
 	{
 		return (micros() - LastSentMicros) >= MinDelayMicros;
