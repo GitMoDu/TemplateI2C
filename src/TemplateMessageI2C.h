@@ -70,7 +70,7 @@ public:
 		return MessageHelper32.uint;
 	}
 
-	void FastWrite(const uint8_t value)
+	inline void FastWrite(const uint8_t value)
 	{
 		Data[Length++] = value;
 	}	
