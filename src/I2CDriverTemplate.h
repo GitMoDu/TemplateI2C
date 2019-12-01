@@ -9,7 +9,8 @@
 
 template <typename WireClass,
 	const uint8_t DeviceAddress,
-	const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN>
+	const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN,
+	const uint32_t ReadAfterWriteDelayMicros = 20>
 	class I2CDriverTemplate : public I2CDriverCommon
 {
 private:
@@ -56,7 +57,7 @@ public:
 
 		for (uint8_t i = 0; i < SetupRetryMaxCount; i++)
 		{
-			if (ValidateIC())
+			if (CheckDevice())
 			{
 #ifdef DEBUG_I2C_DRIVER_TEMPLATE
 				Serial.println(F("Device detected."));
@@ -73,73 +74,47 @@ public:
 		return false;
 	}
 
-
-protected:
-	bool ValidateIC()
+	virtual bool CheckDevice()
 	{
-#ifndef MOCK_I2C_DRIVER
-		if (!SendMessageHeader(I2C_SLAVE_BASE_HEADER_DEVICE_ID))
+		SendMessageHeader(DEVICE_ID_HEADER);
+		
+		delayMicroseconds(ReadAfterWriteDelayMicros);
+
+		if (GetResponse(DEVICE_ID_RESPONSE_SIZE)
+			&& (IncomingMessage.GetHeader() == DEVICE_ID_HEADER)
+			&& (IncomingMessage.Get32BitPayload(0) == GetDeviceId()))
 		{
-#ifdef DEBUG_I2C_DRIVER_TEMPLATE
-			Serial.println(F("Device not found."));
-#endif
-			return false;
+			return true;
 		}
 
-		IncomingMessage.Clear();
-		delayMicroseconds(500);
-		//I2CInstance->requestFrom(DeviceAddress, (uint8_t)I2C_MESSAGE_LENGTH_32BIT_X1);
-
-		if (!GetResponse(I2C_MESSAGE_LENGTH_32BIT_X1))
-		{
-			return false;
-		}
-
-		if (IncomingMessage.GetHeader() != I2C_SLAVE_BASE_HEADER_DEVICE_ID)
-		{
-			//Invalid return message.
-#ifdef DEBUG_I2C_DRIVER_TEMPLATE
-			Serial.print(F("Invalid return message. Size: "));
-			Serial.print(IncomingMessage.GetLength());
-			Serial.print(F(" Header: "));
-			Serial.println(IncomingMessage.GetHeader());
-#endif
-			return false;
-		}
-
-		if (IncomingMessage.Get32BitPayload(0) != GetDeviceId())
-		{
-			//Invalid expected version code.
-			return false;
-		}
-#endif
-
-		return true;
-	}
-
-	inline bool WriteCurrentMessage()
-	{
-#ifndef MOCK_I2C_DRIVER
-		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write(OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
-
-		return I2CInstance->endTransmission() == 0;
-#else
-		return true;
-#endif		
+		return false;
 	}
 
 	bool GetResponse(const uint8_t requestSize)
 	{
+		IncomingMessage.Clear();
+		
 		I2CInstance->requestFrom(DeviceAddress, requestSize);
 
-		IncomingMessage.Clear();
 		while (I2CInstance->available())
 		{
 			IncomingMessage.FastWrite(I2CInstance->read());
 		}
 
 		return IncomingMessage.GetLength() == requestSize;
+	}
+
+protected:
+	inline bool WriteCurrentMessage()
+	{
+#ifndef MOCK_I2C_DRIVER
+		I2CInstance->beginTransmission(DeviceAddress);
+		I2CInstance->write(OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
+		
+		return I2CInstance->endTransmission() == 0;
+#else
+		return true;
+#endif		
 	}
 
 	bool SendMessageHeader(const uint8_t header)
