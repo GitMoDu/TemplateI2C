@@ -16,6 +16,9 @@ private:
 	static const uint8_t SetupRetryMaxCount = 3;
 	WireClass* I2CInstance = nullptr;
 
+	const uint8_t DEVICE_ID_HEADER = I2C_SLAVE_BASE_HEADER_DEVICE_ID;
+	const uint8_t DEVICE_ID_RESPONSE_SIZE = I2C_MESSAGE_LENGTH_32BIT_X1;
+
 protected:
 	TemplateMessageI2C<MessageMaxSize> OutgoingMessage;
 	TemplateMessageI2C<MessageMaxSize> IncomingMessage;
