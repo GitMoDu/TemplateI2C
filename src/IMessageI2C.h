@@ -29,7 +29,7 @@ public:
 	}
 
 public:
-	virtual uint8_t * GetRaw();
+	virtual uint8_t* GetRaw();
 	virtual void FastWrite(const uint8_t value);
 
 	///Message reading helpers.
