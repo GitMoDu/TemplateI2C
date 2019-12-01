@@ -5,11 +5,12 @@
 
 #include <TemplateMessageI2C.h>
 #include <I2CSlaveConstants.h>
+#include <I2CDriverCommon.h>
 
 template <typename WireClass,
 	const uint8_t DeviceAddress,
 	const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN>
-	class I2CDriverTemplate
+	class I2CDriverTemplate : public I2CDriverCommon
 {
 private:
 	static const uint8_t SetupRetryMaxCount = 3;
@@ -26,7 +27,7 @@ protected:
 	virtual bool OnSetup() { return true; }
 
 public:
-	I2CDriverTemplate(WireClass* i2cInstance)
+	I2CDriverTemplate(WireClass* i2cInstance): I2CDriverCommon()
 	{
 		I2CInstance = i2cInstance;
 	}
