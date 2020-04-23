@@ -31,7 +31,7 @@ protected:
 	virtual bool OnSetup() { return true; }
 
 public:
-	I2CDriverTemplate(WireClass* i2cInstance): I2CDriverCommon()
+	I2CDriverTemplate(WireClass* i2cInstance) : I2CDriverCommon()
 	{
 		I2CInstance = i2cInstance;
 	}
@@ -76,8 +76,11 @@ public:
 
 	virtual bool CheckDevice()
 	{
+#ifdef MOCK_I2C_DRIVER
+		return true;
+#else
 		SendMessageHeader(DEVICE_ID_HEADER);
-		
+
 		delayMicroseconds(ReadAfterWriteDelayMicros);
 
 		if (GetResponse(DEVICE_ID_RESPONSE_SIZE)
@@ -88,12 +91,13 @@ public:
 		}
 
 		return false;
+#endif
 	}
 
 	bool GetResponse(const uint8_t requestSize)
 	{
 		IncomingMessage.Clear();
-		
+
 		I2CInstance->requestFrom(DeviceAddress, requestSize);
 
 		while (I2CInstance->available())
@@ -110,7 +114,7 @@ protected:
 #ifndef MOCK_I2C_DRIVER
 		I2CInstance->beginTransmission(DeviceAddress);
 		I2CInstance->write(OutgoingMessage.GetRaw(), OutgoingMessage.GetLength());
-		
+
 		return I2CInstance->endTransmission() == 0;
 #else
 		return true;
