@@ -16,7 +16,7 @@
 
 template<typename WireClass,
 	const uint8_t DeviceAddress,
-	const uint32_t MinDelayMicros = 500,
+	const uint32_t MinDelayMicros = 100,
 	const uint8_t MessageMaxSize = I2C_MESSAGE_RECEIVER_MESSAGE_LENGTH_MIN,
 	const uint8_t OutQueueSize = 10>
 	class I2CAsyncDriverTemplate : Task
@@ -177,14 +177,10 @@ protected:
 
 		IncomingMessage.Clear();
 		delayMicroseconds(MinDelayMicros);
-		I2CInstance->requestFrom(DeviceAddress, (uint8_t)I2C_MESSAGE_LENGTH_32BIT_X1);
 
-		while (I2CInstance->available())
+		if (!GetResponseNow(I2C_MESSAGE_LENGTH_32BIT_X1))
 		{
-			if (!IncomingMessage.Append(I2CInstance->read()))
-			{
-				break;
-			}
+			return false;
 		}
 
 		if (IncomingMessage.GetLength() != I2C_MESSAGE_LENGTH_32BIT_X1 ||
