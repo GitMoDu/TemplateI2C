@@ -1,6 +1,6 @@
 // AbstractI2CSlave.h
 
-#if !defined(_ABSTRACTI2CSLAVE_h) && defined(__AVR__)
+#if !defined(_ABSTRACTI2CSLAVE_h)
 #define _ABSTRACTI2CSLAVE_h
 
 #define DEBUG_ABSTRACT_I2CSLAVE
