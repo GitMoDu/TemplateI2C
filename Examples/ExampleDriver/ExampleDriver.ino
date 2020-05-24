@@ -1,38 +1,35 @@
 
 #define DEBUG_LOG
 #define WAIT_FOR_LOGGER
-#define DEBUG_I2C
+#define DEBUG_TEMPLATE_I2C_DRIVER
 
 #define DEBUG_TESTS
 
-//#define MOCK_I2C_DRIVER
+//#define I2C_DRIVER_MOCK_I2C
 
 #define SERIAL_BAUD_RATE 115200
 
-#include "ExampleSlaveApi.h"
-#include <I2CDriverTemplate.h>
+#include "I2CExampleApiInclude.h"
+#include <TemplateI2CDriver.h>
 #include <Wire.h>
 
 ///I2C ExampleDriver
-class ExampleI2CDriver : public I2CDriverTemplate<TwoWire, ExampleApi::DeviceAddress>
+class ExampleI2CDriver : public TemplateI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>
 {
 public:
-	ExampleI2CDriver() : I2CDriverTemplate<TwoWire, ExampleApi::DeviceAddress>()
+	ExampleI2CDriver(TwoWire* i2cInstance) : TemplateI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>(i2cInstance)
 	{
 	}
 
 public:
-	uint32_t GetDeviceId() { return ExampleApi::DeviceId; }
-
-
 	void Start()
 	{
-		SendMessageHeader(ExampleApi::RequestHeader::Start);
+		SendMessageHeader(ExampleApi::Start.Header);
 	}
 
 	void Stop()
 	{
-		SendMessageHeader(ExampleApi::RequestHeader::Stop);
+		SendMessageHeader(ExampleApi::Stop.Header);
 	}
 
 protected:
@@ -40,7 +37,7 @@ protected:
 };
 
 
-ExampleI2CDriver ExampleDriver;
+ExampleI2CDriver ExampleDriver(&Wire);
 ///
 
 void Halt()
@@ -61,7 +58,7 @@ void setup()
 		;
 #endif
 	delay(1000);
-	Serial.println(F("Arduino I2C ExampleDriver Slave Tester"));
+	Serial.println(F("Arduino TemplateDriver Slave Tester"));
 #endif
 
 #ifndef MOCK_I2C_DRIVER
@@ -69,7 +66,7 @@ void setup()
 	Wire.begin();
 #endif
 
-	if (!ExampleDriver.Setup(&Wire))
+	if (!ExampleDriver.Setup())
 	{
 #ifdef DEBUG_LOG
 		Serial.println(F("ExampleDriver Setup Failed."));
@@ -85,7 +82,6 @@ void setup()
 #ifdef DEBUG_TESTS
 	InjectTestMessages();
 #endif
-
 }
 
 void loop()

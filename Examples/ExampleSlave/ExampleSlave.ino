@@ -1,87 +1,95 @@
 
-//#define DEBUG_LOG
-//#define WAIT_FOR_LOGGER
-//#define DEBUG_I2C
 
-//#define DEBUG_TESTS
 
 
 #define SERIAL_BAUD_RATE 115200
 
-#include "ExampleSlaveApi.h"
-#include <AbstractI2CSlave.h>
+#define DEBUG_TEMPLATE_I2C
 
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-#define _TASK_OO_CALLBACKS
-#include <TaskScheduler.h>
-///Process scheduler.
-Scheduler SchedulerBase;
-///
-#endif
+#include "I2CExampleApiInclude.h"
+#include <TemplateI2CSlave.h>
+
 
 #ifdef ARDUINO_ARCH_AVR
-#define BLINK_PIN 13
+#define BLINK_PIN LED_BUILTIN
 #else
 #error Define a pin
 #endif // ARDUINO_ARCH_AVR
 
 
 ///Example controller.
+inline void SetupCallbacks();
+
 class ExampleControllerClass
 {
 public:
-	void Start()
+	ExampleControllerClass()
 	{
 		pinMode(BLINK_PIN, OUTPUT);
-		digitalWrite(BLINK_PIN, true);
+	}
+
+	void Start()
+	{
+		digitalWrite(BLINK_PIN, HIGH);
 	}
 
 	void Stop()
 	{
-		pinMode(BLINK_PIN, INPUT);
+		digitalWrite(BLINK_PIN, HIGH);
 	}
 };
+
 ///
 ///I2C ExampleSlave
-class ExampleSlaveClass : public AbstractI2CSlaveTask<ExampleApi::DeviceAddress>
+class ExampleSlaveClass : public TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>
 {
 private:
 	ExampleControllerClass* Controller = nullptr;
+	using TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>::IncomingProcessingMessage;
 
 public:
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	ExampleSlaveClass(Scheduler* scheduler, ExampleControllerClass* controller) : AbstractI2CSlaveTask<ExampleApi::DeviceAddress>(scheduler)
 #else
-	ExampleSlaveClass(ExampleControllerClass* controller) : AbstractI2CSlaveTask<ExampleApi::DeviceAddress>()
+	ExampleSlaveClass(ExampleControllerClass* controller) : TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>()
 #endif	
 	{
 		Controller = controller;
 	}
 
 protected:
-	bool ProcessMessage(IMessageI2C* currentMessage)
+	virtual bool ProcessMessage()
 	{
-		switch (currentMessage->GetHeader())
+		switch (IncomingProcessingMessage.GetHeader())
 		{
-		case ExampleApi::Start:
-			if (currentMessage->GetLength() == I2C_MESSAGE_LENGTH_HEADER_ONLY)
+		case ExampleApi::Start.Header:
+			if (IncomingProcessingMessage.Length == ExampleApi::Start.Length)
 			{
 				Controller->Start();
+				return true;
 			}
 			break;
-		case ExampleApi::Stop:
-			if (currentMessage->GetLength() == I2C_MESSAGE_LENGTH_HEADER_ONLY)
+		case ExampleApi::Stop.Header:
+			if (IncomingProcessingMessage.Length == ExampleApi::Stop.Length)
 			{
 				Controller->Stop();
+				return true;
 			}
 			break;
 		default:
 			break;
 		}
+
 		return false;
 	}
 
-	bool OnSetup() { return Controller != nullptr; }
+	virtual bool SetupWireCallbacks()
+	{
+		SetupCallbacks();
+		
+
+		return  true;
+	}
 };
 
 
@@ -93,6 +101,21 @@ ExampleSlaveClass ExampleSlave(&Controller);
 #endif
 ///
 
+void ReceiveEvent(int16_t length)
+{
+	ExampleSlave.OnReceive(length);
+}
+
+void RequestEvent()
+{
+	ExampleSlave.OnRequest();
+}
+
+void SetupCallbacks()
+{
+	Wire.onReceive(ReceiveEvent);
+	Wire.onRequest(RequestEvent);
+}
 
 void setup()
 {
@@ -122,19 +145,16 @@ void setup()
 #ifdef DEBUG_TESTS
 	InjectTestMessages();
 #endif
-
 }
 
 void loop()
 {
-	ExampleSlave.Callback();
 }
 
 #ifdef DEBUG_TESTS
 void InjectTestMessages()
 {
 	Serial.println(F("Injecting test messages."));
-
 }
 #endif
 

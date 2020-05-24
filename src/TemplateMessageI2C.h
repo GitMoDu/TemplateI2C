@@ -3,186 +3,161 @@
 #ifndef _TEMPLATE_MESSAGE_I2C_h
 #define _TEMPLATE_MESSAGE_I2C_h
 
-#include <stdint.h>
-#include <I2CSlaveDefinitions.h>
-#include <MessageHelper.h>
-#include <IMessageI2C.h>
+#include <I2CSlaveBaseAPI.h>
 
 
-//Template class for messages.
-template <const uint8_t MessageMaxSize = 1 + sizeof(uint32_t)>
-class TemplateMessageI2C : public IMessageI2C
+// Template class for generic message.
+template<const uint8_t MessageSize>
+class TemplateMessageI2C
 {
 protected:
-	uint8_t Data[MessageMaxSize];
+	union ArrayToUint16 {
+		uint8_t array[2];
+		uint16_t uint;
+	};
+
+	union ArrayToUint32 {
+		uint8_t array[4];
+		uint32_t uint;
+	};
 
 public:
-	///Overloads.
-	uint8_t* GetRaw()
+	uint8_t Data[MessageSize];
+
+	static const uint8_t Length = MessageSize;
+
+public:
+	void Copy(uint8_t* inputRaw, const uint8_t length)
 	{
-		return &Data[0];
+		for (uint8_t i = 0; i < length; i++)
+		{
+			Data[i] = inputRaw[i];
+		}
 	}
 
-	///Message building helpers.
+	// Header helpers.
+	uint8_t GetHeader()
+	{
+		return Data[0];
+	}
+
 	void SetHeader(const uint8_t header)
 	{
 		Data[0] = header;
-		if (Length < 1)
-		{
-			Length = 1;
-		}
 	}
 
-	uint16_t Get8BitPayload(const uint8_t offset = 0)
+	uint16_t Get8Bit(const uint8_t offset = 0)
 	{
-		if ((offset + 1) > GetLength() - sizeof(uint8_t))
+#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
+		if (offset > Length - sizeof(uint8_t))
 		{
 			return 0;
 		}
+#endif
 
-		return Data[(offset + 1)];
+		return Data[offset];
 	}
 
-	uint16_t Get16BitPayload(const uint8_t offset = 0)
+	uint16_t Get16Bit(const uint8_t offset = 0)
 	{
-		if ((offset + 1) > GetLength() - sizeof(uint16_t))
+#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
+		if (offset > Length - sizeof(uint16_t))
 		{
 			return 0;
 		}
-		MessageHelper16.array[0] = Data[offset + 1];
-		MessageHelper16.array[1] = Data[offset + 2];
+#endif
+		ArrayToUint16 MessageHelper16;
+		MessageHelper16.array[0] = Data[offset];
+		MessageHelper16.array[1] = Data[offset + 1];
 
 		return MessageHelper16.uint;
 	}
 
-	uint32_t Get32BitPayload(const uint8_t offset = 0)
+	bool Set16Bit(const uint16_t value, const uint8_t offset)
 	{
-		if ((offset + 1) > GetLength() - sizeof(uint32_t))
+#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
+		if ((offset) > Length)
+		{
+			return false;
+		}
+#endif
+		ArrayToUint16 MessageHelper16;
+
+		MessageHelper16.uint = value;
+
+		Data[offset] = MessageHelper16.array[0];
+		Data[offset + 1] = MessageHelper16.array[1];
+
+		return true;
+	}
+
+	uint32_t Get32Bit(const uint8_t offset = 0)
+	{
+#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
+		if (offset > Length - sizeof(uint32_t))
 		{
 			return 0;
 		}
+#endif 
+		ArrayToUint32 MessageHelper32;
 
-		MessageHelper32.array[0] = Data[offset + 1];
-		MessageHelper32.array[1] = Data[offset + 2];
-		MessageHelper32.array[2] = Data[offset + 3];
-		MessageHelper32.array[3] = Data[offset + 4];
+		MessageHelper32.array[0] = Data[offset];
+		MessageHelper32.array[1] = Data[offset + 1];
+		MessageHelper32.array[2] = Data[offset + 2];
+		MessageHelper32.array[3] = Data[offset + 3];
 
 		return MessageHelper32.uint;
 	}
 
-	inline void FastWrite(const uint8_t value)
+	bool Set32Bit(const uint32_t value, const uint8_t offset)
 	{
-		Data[Length++] = value;
-	}	
-	
-	bool AppendPayload(uint8_t* source, const uint8_t length)
-	{
-		if (Length < MessageMaxSize &&
-			Length > 0)
+#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
+		if ((offset) > Length)
 		{
-			for (uint8_t i = 0; i < length; i++)
-			{
-				Data[Length++] = source[i];
-
-				if (Length > MessageMaxSize)
-				{
-					return false;
-				}
-			}
+			return false;
 		}
+#endif
+		ArrayToUint32 MessageHelper32;
 
-		return true;
-	}
-
-	bool Append8BitPayload(const uint8_t value)
-	{
-		if (Length < MessageMaxSize &&
-			Length > 0)
-		{
-			Data[Length++] = value;
-
-			return true;
-		}
-
-		return false;
-	}
-
-	bool Append16BitPayload(const uint16_t value)
-	{
-		MessageHelper16.uint = value;
-
-		return AppendPayload(MessageHelper16.array, sizeof(uint16_t));
-	}
-
-	bool Append32BitPayload(const uint32_t value)
-	{
 		MessageHelper32.uint = value;
 
-		if (!AppendPayload(MessageHelper32.array, sizeof(uint32_t)))
-		{
-			return false;
-		}
+		Data[offset] = MessageHelper32.array[0];
+		Data[offset + 1] = MessageHelper32.array[1];
+		Data[offset + 2] = MessageHelper32.array[2];
+		Data[offset + 3] = MessageHelper32.array[3];
 
 		return true;
 	}
+};
 
-	bool SetPayload(uint8_t* source, const uint8_t length, const uint8_t offset = 0)
+// Template class for buffering message.
+template<const uint8_t MessageSize>
+class TemplateVariableMessageI2C : public TemplateMessageI2C<MessageSize>
+{
+public:
+	using TemplateMessageI2C<MessageSize>::Data;
+	volatile uint8_t Length = 0;
+
+public:
+	void Clear()
 	{
-		if ((offset + 1) > GetLength() - length)
-		{
-			return false;
-		}
+		Length = 0;
+	}
+
+	// Used for streaming from I2C buffer.
+	void FastWrite(const uint8_t value)
+	{
+		Data[Length++] = value;
+	}
+
+	void CopyVariable(uint8_t* inputRaw, const uint8_t length)
+	{
+		Length = length;
 
 		for (uint8_t i = 0; i < length; i++)
 		{
-			Data[offset + 1 + i] = source[i];
+			Data[i] = inputRaw[i];
 		}
-
-		return true;
-	}
-
-	bool Set8BitPayload(const uint8_t value, const uint8_t offset = 0)
-	{
-		if ((offset + 1) > GetLength() - sizeof(uint8_t))
-		{
-			return false;
-		}
-
-		Data[(offset + 1)] = value;
-
-		return true;
-	}
-
-	bool Set16BitPayload(const uint16_t value, const uint8_t offset = 0)
-	{
-		if ((offset + 1) > GetLength() - sizeof(uint16_t))
-		{
-			return false;
-		}
-
-		MessageHelper16.uint = value;
-
-		Data[offset + 1] = MessageHelper16.array[0];
-		Data[offset + 2] = MessageHelper16.array[1];
-
-		return true;
-	}
-
-	bool Set32BitPayload(const uint32_t value, const uint8_t offset = 0)
-	{
-		if ((offset + 1) > GetLength() - sizeof(uint32_t))
-		{
-			return false;
-		}
-
-		MessageHelper32.uint = value;
-
-		Data[offset + 1] = MessageHelper32.array[0];
-		Data[offset + 2] = MessageHelper32.array[1];
-		Data[offset + 3] = MessageHelper32.array[2];
-		Data[offset + 4] = MessageHelper32.array[3];
-
-		return true;
 	}
 };
 #endif
