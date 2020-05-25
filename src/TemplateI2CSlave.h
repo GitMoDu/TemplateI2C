@@ -18,20 +18,24 @@
 
 template<const uint8_t DeviceAddress,
 	const uint32_t DeviceId>
-class TemplateI2CSlave
+	class TemplateI2CSlave
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	: Task
 #endif
 {
 private:
 	// I2C Read pointer output, source data is always external.
-	uint8_t* OutgoingPointer = nullptr;
+	uint8_t * OutgoingPointer = nullptr;
 	volatile uint8_t OutgoingSize = 0;
 	//
 
 	// Base Slave info messages.
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 	TemplateMessageI2C<BaseAPI::GetDeviceId.ResponseLength> IdMessage;
+#endif
+
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
+	TemplateMessageI2C<BaseAPI::GetErrors.ResponseLength> ErrorsMessage;
 #endif
 	//
 
@@ -45,13 +49,6 @@ protected:
 	// Buffered read message.
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingProcessingMessage;
 
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-	//Error and Status for this session.
-	volatile uint32_t MessageOverflows = 0;
-	volatile uint32_t MessageSizeErrors = 0;
-	volatile uint32_t MessageContentErrors = 0;
-	//
-#endif
 
 private:
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
@@ -94,9 +91,9 @@ public:
 			&& PrepareBaseMessages())
 		{
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			MessageOverflows = 0;
-			MessageSizeErrors = 0;
-			MessageContentErrors = 0;
+			ErrorsMessage.Set32Bit(0, 0);
+			ErrorsMessage.Set32Bit(0, sizeof(uint32_t));
+			ErrorsMessage.Set32Bit(0, sizeof(uint32_t) * 2);
 #endif
 
 			// Overzealous I2C Setup.
@@ -144,7 +141,7 @@ public:
 			length > min(BaseAPI::MessageMaxSize, TWI_RX_BUFFER_SIZE))
 		{
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			MessageSizeErrors++;
+			ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
 #endif
 			while (length--)
 			{
@@ -160,7 +157,7 @@ public:
 			// Cannot respond so quickly, hold your horses.
 			// If this happens, we've skipped a message.
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			MessageOverflows++;
+			ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t) * 2) + 1, sizeof(uint32_t) * 2);
 #endif
 
 			return;
@@ -212,7 +209,7 @@ public:
 					Serial.println(F("Unable to process message."));
 #endif
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-					MessageContentErrors++;
+					ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t)) + 1, sizeof(uint32_t));
 #endif
 				}
 			}
@@ -240,7 +237,7 @@ public:
 				{
 					// Unrecognized message.
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-					MessageContentErrors++;
+					ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t)) + 1, sizeof(uint32_t));
 #endif
 				}
 			}
@@ -265,6 +262,11 @@ private:
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		IdMessage.SetHeader(BaseAPI::GetDeviceId.Header);
 		IdMessage.Set32Bit(GetDeviceId(), BaseAPI::SizeHeader);
+#endif
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
+		ErrorsMessage.Set32Bit(0,0);
+		ErrorsMessage.Set32Bit(0,sizeof(uint32_t));
+		ErrorsMessage.Set32Bit(0, sizeof(uint32_t) * 2);
 #endif
 		return true;
 	}
@@ -293,7 +295,7 @@ private:
 			else
 			{
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				MessageSizeErrors++;
+				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
 #endif
 			}
 			return true;
@@ -306,12 +308,12 @@ private:
 				Serial.println(F("Reset device, bye bye!"));
 #endif
 				ResetDevice();
-				// Never runs;
+				// Never runs.
 			}
 			else
 			{
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				MessageSizeErrors++;
+				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
 #endif
 			}
 			return true;
@@ -323,13 +325,31 @@ private:
 #ifdef DEBUG_TEMPLATE_I2C
 				Serial.println(F("Sleep device, be back on interrupt."));
 #endif
+#ifndef I2C_SLAVE_USE_TASK_SCHEDULER
+				// If we're processing this mid interrupt, clear pending Wire messages.
+				Wire.flush();
+#endif
 				LowPowerFunction();
 			}
 			else
 			{
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				MessageSizeErrors++;
+				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
 #endif
+			}
+			return true;
+#endif
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
+		case BaseAPI::GetErrors.Header:
+			if (IncomingProcessingMessage.Length == BaseAPI::GetErrors.Length)
+			{
+				OutgoingPointer = ErrorsMessage.Data;
+				OutgoingSize = ErrorsMessage.Length;
+			}
+			else
+			{
+				// Ironic. Couldn't report on the errors, so we just keep counting errors.
+				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
 			}
 			return true;
 #endif

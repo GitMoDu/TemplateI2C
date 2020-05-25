@@ -83,6 +83,12 @@ public:
 	static const CommandHeader<HeaderBaseMax - 3,
 		SizeHeader> SetLowPowerMode;
 #endif
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
+	//uint32_t SizeErrors, ContentErrors, Overflows
+	static const ResponseHeader<HeaderBaseMax - 4,
+		SizeHeader, 
+		sizeof(uint32_t) * 3 > GetErrors;
+#endif
 };
 #endif
 
