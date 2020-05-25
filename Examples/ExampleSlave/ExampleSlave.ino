@@ -10,37 +10,28 @@
 #include <TemplateI2CSlave.h>
 
 
-#ifdef ARDUINO_ARCH_AVR
-#define BLINK_PIN LED_BUILTIN
-#else
-#error Define a pin
-#endif // ARDUINO_ARCH_AVR
-
-
-///Example controller.
+// Example controller.
 inline void SetupCallbacks();
-
 class ExampleControllerClass
 {
 public:
 	ExampleControllerClass()
 	{
-		pinMode(BLINK_PIN, OUTPUT);
+		pinMode(LED_BUILTIN, OUTPUT);
 	}
 
 	void Start()
 	{
-		digitalWrite(BLINK_PIN, HIGH);
+		digitalWrite(LED_BUILTIN, HIGH);
 	}
 
 	void Stop()
 	{
-		digitalWrite(BLINK_PIN, HIGH);
+		digitalWrite(LED_BUILTIN, HIGH);
 	}
 };
 
-///
-///I2C ExampleSlave
+// ExampleSlave.
 class ExampleSlaveClass : public TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>
 {
 private:
@@ -86,20 +77,20 @@ protected:
 	virtual bool SetupWireCallbacks()
 	{
 		SetupCallbacks();
-		
+
 
 		return  true;
 	}
 };
 
-
+//
 ExampleControllerClass Controller;
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 ExampleSlaveClass ExampleSlave(&SchedulerBase, &Controller);
 #else
 ExampleSlaveClass ExampleSlave(&Controller);
 #endif
-///
+//
 
 void ReceiveEvent(int16_t length)
 {
