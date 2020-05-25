@@ -2,11 +2,11 @@
 
 Create Arduino I2C slave devices, as well as its I2C Drivers with Template Classes.
 
-Common API file.
+Common API:
   - Easy extension of BaseAPI class.
 
 
-TemplateI2CSlave.
+TemplateI2CSlave:
   - Uses Extended BaseAPI class.
   - Easy extension of I2C device.
   - No work done during RequestOutput.
@@ -19,7 +19,7 @@ TemplateI2CSlave.
     - Double buffered message processing.
 
 
-Template Driver for using device.
+TemplateI2CDriver:
   - Uses Extended BaseAPI class.
   - Easy extension of I2C driver.
 
