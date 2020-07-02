@@ -22,7 +22,7 @@ protected:
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingMessage;
 
 public:
-	uint32_t GetDeviceId() { return DeviceId; }
+	const uint32_t GetDeviceId() { return DeviceId; }
 
 public:
 	TemplateI2CDriver(TwoWire* i2cInstance)
