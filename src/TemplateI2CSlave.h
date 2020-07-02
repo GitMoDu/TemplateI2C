@@ -49,7 +49,6 @@ protected:
 	// Buffered read message.
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingProcessingMessage;
 
-
 private:
 #ifdef I2C_SLAVE_USE_TASK_SCHEDULER
 	// Double buffered input, minimal interrupt disruption.
@@ -247,9 +246,9 @@ public:
 #endif
 
 protected:
-	void SetOutput(uint8_t* output, const uint8_t length)
+	void SetOutput(volatile uint8_t* output, const uint8_t length)
 	{
-		if (output != nullptr || length > TWI_TX_BUFFER_SIZE)
+		if (output != nullptr && length <= TWI_TX_BUFFER_SIZE)
 		{
 			OutgoingPointer = output;
 			OutgoingSize = length;
