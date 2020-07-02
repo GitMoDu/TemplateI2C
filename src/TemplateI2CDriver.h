@@ -68,11 +68,28 @@ public:
 		return false;
 	}
 
+	bool RequestDeviceIdAsync()
+	{
+		return SendMessageHeader(BaseAPI::GetDeviceId.Header);
+	}
+
+	bool GetDeviceIdAsync(uint32_t& deviceIdFromRead)
+	{
+		if (GetResponse(BaseAPI::GetDeviceId.ResponseLength))
+		{
+			deviceIdFromRead = IncomingMessage.Get32Bit(0);
+			return true;
+		}
+
+		return false;
+	}
+
 	virtual bool CheckDevice()
 	{
 #ifdef I2C_DRIVER_MOCK_I2C
 		return true;
 #else
+
 		bool Ok = SendMessageHeader(BaseAPI::GetDeviceId.Header);
 
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
@@ -133,37 +150,6 @@ protected:
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
 		OutgoingMessage.Length = 1;
-
-		return WriteCurrentMessage();
-	}
-
-	bool SendMessageSingle16(const uint8_t header, uint16_t value)
-	{
-		OutgoingMessage.Clear();
-		OutgoingMessage.SetHeader(header);
-		OutgoingMessage.Set16Bit(value, 1);
-		OutgoingMessage.Length = 3;
-
-		return WriteCurrentMessage();
-	}
-
-	bool SendMessageSingle32(const uint8_t header, uint32_t value)
-	{
-		OutgoingMessage.Clear();
-		OutgoingMessage.SetHeader(header);
-		OutgoingMessage.Set32Bit(value, 1);
-		OutgoingMessage.Length = 5;
-
-		return WriteCurrentMessage();
-	}
-
-	bool SendMessageDual16(const uint8_t header, uint16_t value1, uint16_t value2)
-	{
-		OutgoingMessage.Clear();
-		OutgoingMessage.SetHeader(header);
-		OutgoingMessage.Set16Bit(value1, 1);
-		OutgoingMessage.Set16Bit(value2, 3);
-		OutgoingMessage.Length = 5;
 
 		return WriteCurrentMessage();
 	}
