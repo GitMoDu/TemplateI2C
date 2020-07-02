@@ -97,14 +97,21 @@ public:
 	{
 		IncomingMessage.Clear();
 
-		I2CInstance->requestFrom(DeviceAddress, requestSize);
-
-		while (I2CInstance->available())
+#ifdef I2C_DRIVER_MOCK_I2C
+		return true;
+#else
+		if (I2CInstance->requestFrom(DeviceAddress, requestSize, true))
 		{
-			IncomingMessage.FastWrite(I2CInstance->read());
+			while (I2CInstance->available())
+			{
+				IncomingMessage.FastWrite(I2CInstance->read());
+			}
+
+			return IncomingMessage.Length == requestSize;
 		}
 
-		return IncomingMessage.Length == requestSize;
+		return false;
+#endif		
 	}
 
 protected:
@@ -112,7 +119,7 @@ protected:
 	{
 #ifndef I2C_DRIVER_MOCK_I2C
 		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write(OutgoingMessage.Data, OutgoingMessage.Length);
+		I2CInstance->write((uint8*)OutgoingMessage.Data, OutgoingMessage.Length);
 
 		return I2CInstance->endTransmission() == 0;
 #else
@@ -120,7 +127,7 @@ protected:
 #endif		
 	}
 
-	// Quick message senders.
+	// Quick message sender.
 	bool SendMessageHeader(const uint8_t header)
 	{
 		OutgoingMessage.Clear();
