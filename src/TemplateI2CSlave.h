@@ -283,13 +283,13 @@ private:
 		{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		case BaseAPI::GetDeviceId.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::GetDeviceId.Length)
+			if (IncomingProcessingMessage.Length == BaseAPI::GetDeviceId.CommandLength)
 			{
 #ifdef DEBUG_TEMPLATE_I2C
 				Serial.println(F("GetId"));
 #endif
 				OutgoingPointer = IdMessage.Data;
-				OutgoingSize = IdMessage.Length;
+				OutgoingSize = BaseAPI::GetDeviceId.ResponseLength;
 			}
 			else
 			{
@@ -301,7 +301,7 @@ private:
 #endif
 #ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
 		case BaseAPI::ResetDevice.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::ResetDevice.Length)
+			if (IncomingProcessingMessage.Length == BaseAPI::ResetDevice.CommandLength)
 			{
 #ifdef DEBUG_TEMPLATE_I2C
 				Serial.println(F("Reset device, bye bye!"));
@@ -319,7 +319,7 @@ private:
 #endif
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 		case BaseAPI::SetLowPowerMode.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::SetLowPowerMode.Length)
+			if (IncomingProcessingMessage.Length == BaseAPI::SetLowPowerMode.CommandLength)
 			{
 #ifdef DEBUG_TEMPLATE_I2C
 				Serial.println(F("Sleep device, be back on interrupt."));
@@ -340,7 +340,7 @@ private:
 #endif
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 		case BaseAPI::GetErrors.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::GetErrors.Length)
+			if (IncomingProcessingMessage.Length == BaseAPI::GetErrors.CommandLength)
 			{
 				OutgoingPointer = ErrorsMessage.Data;
 				OutgoingSize = ErrorsMessage.Length;

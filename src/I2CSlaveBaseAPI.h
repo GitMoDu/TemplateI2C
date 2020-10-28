@@ -63,7 +63,7 @@ public:
 		struct ResponseHeader
 	{
 		static const uint8_t Header = HeaderValue;
-		static const uint8_t Length = LengthValue;
+		static const uint8_t CommandLength = LengthValue + SizeHeader;
 		static const uint8_t ResponseLength = ResponseLengthValue;
 	};
 
@@ -72,40 +72,38 @@ public:
 		struct CommandHeader
 	{
 		static const uint8_t Header = HeaderValue;
-		static const uint8_t Length = LengthValue;
+		static const uint8_t CommandLength = LengthValue;
 	};
 
-	static const uint8_t DeviceAddress = 0x88; // R8
+private:
+	static const uint8_t TemplateHeaderBase = 0;
 
-	// Common.
-	static const uint8_t HeaderMax = 0XEF;
-	static const uint8_t HeaderBaseMax = 0XFE;
-	static const uint8_t MessageMinMaxSize = sizeof(uint32_t) + 1;
+public:
+	static const uint8_t HeaderMin = TemplateHeaderBase + 10; // First 10 headers are reserved for template.
 	static const uint8_t MessageMaxSize = I2C_SLAVE_MAX_MESSAGE_SIZE;
-	static const uint8_t SizeHeader = 1;
 
+public:
 	// Base message headers
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-	static const ResponseHeader<HeaderBaseMax - 1,
+	static const ResponseHeader<TemplateHeaderBase,
 		SizeHeader,
 		SizeHeader + sizeof(uint32_t)> GetDeviceId;
 #endif
 
 #ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
-	static const CommandHeader<HeaderBaseMax - 2,
+	static const CommandHeader<TemplateHeaderBase + 1,
 		SizeHeader> ResetDevice;
 #endif
 
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
-	static const CommandHeader<HeaderBaseMax - 3,
+	static const CommandHeader<TemplateHeaderBase + 2,
 		SizeHeader> SetLowPowerMode;
 #endif
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
 	//uint32_t SizeErrors, ContentErrors, Overflows
-	static const ResponseHeader<HeaderBaseMax - 4,
-		SizeHeader, 
+	static const ResponseHeader<TemplateHeaderBase + 3,
+		SizeHeader,
 		sizeof(uint32_t) * 3 > GetErrors;
 #endif
 };
 #endif
-
