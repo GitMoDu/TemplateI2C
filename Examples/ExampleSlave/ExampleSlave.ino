@@ -39,11 +39,7 @@ private:
 	using TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>::IncomingProcessingMessage;
 
 public:
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-	ExampleSlaveClass(Scheduler* scheduler, ExampleControllerClass* controller) : AbstractI2CSlaveTask<ExampleApi::DeviceAddress>(scheduler)
-#else
 	ExampleSlaveClass(ExampleControllerClass* controller) : TemplateI2CSlave<ExampleApi::DeviceAddress, ExampleApi::DeviceId>()
-#endif	
 	{
 		Controller = controller;
 	}
@@ -84,11 +80,8 @@ protected:
 
 //
 ExampleControllerClass Controller;
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-ExampleSlaveClass ExampleSlave(&SchedulerBase, &Controller);
-#else
+
 ExampleSlaveClass ExampleSlave(&Controller);
-#endif
 //
 
 void ReceiveEvent(int16_t length)

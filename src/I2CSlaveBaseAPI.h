@@ -22,9 +22,6 @@
 // Useful for debugging, overhead when the system is validate.
 //#define I2C_SLAVE_MESSAGE_RANGE_CHECK
 
-// If you don't use a task scheduller, all processing will be done in interrupt.
-//#define I2C_SLAVE_USE_TASK_SCHEDULER
-
 // Enable device id.
 //#define I2C_SLAVE_DEVICE_ID_ENABLE
 

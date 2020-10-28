@@ -3,13 +3,6 @@
 #ifndef _TEMPLATE_I2C_SLAVE_h)
 #define _TEMPLATE_I2C_SLAVE_h
 
-
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-#define _TASK_OO_CALLBACKS
-#define _TASK_SLEEP_ON_IDLE_RUN
-#include <TaskSchedulerDeclarations.h>
-#endif
-
 #include <I2CSlaveBaseAPI.h>
 #include <TemplateMessageI2C.h>
 
@@ -19,9 +12,6 @@
 template<const uint8_t DeviceAddress,
 	const uint32_t DeviceId>
 	class TemplateI2CSlave
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-	: Task
-#endif
 {
 private:
 	// I2C Read pointer output, source data is always external.
@@ -49,13 +39,6 @@ protected:
 	// Buffered read message.
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingProcessingMessage;
 
-private:
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-	// Double buffered input, minimal interrupt disruption.
-	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingMessage;
-	//
-#endif
-
 protected:
 	virtual bool ProcessMessage() { return false; }
 
@@ -70,11 +53,7 @@ protected:
 	}
 
 public:
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-	TemplateI2CSlave(Scheduler* scheduler) : Task(0, TASK_FOREVER, scheduler, false)
-#else
 	TemplateI2CSlave()
-#endif	
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		: IdMessage()
 #endif
@@ -128,13 +107,8 @@ public:
 #ifdef DEBUG_TEMPLATE_I2C
 	void TestInputMessage(uint8_t* data, const uint8_t length)
 	{
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-		IncomingMessage.CopyVariable(data, length);
-		Task::enable();
-#else
 		IncomingProcessingMessage.CopyVariable(data, length);
 		InInterruptMessageProcessing();
-#endif
 	}
 #endif
 
@@ -161,33 +135,12 @@ public:
 			return;
 		}
 
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-		if (IncomingMessage.Length > 0)
-		{
-			// Cannot respond so quickly, hold your horses.
-			// If this happens, we've skipped a message.
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t) * 2) + 1, sizeof(uint32_t) * 2);
-#endif
-
-			return;
-		}
-		IncomingMessage.Clear();
-		// We copy to a second buffer, so we can process it in the main loop safely,
-		// instead of in interrupt.
-		while (length--)
-		{
-			IncomingMessage.FastWrite(Wire.read());
-		}
-		Task::enable();
-#else
 		IncomingProcessingMessage.Clear();
 		while (length--)
 		{
 			IncomingProcessingMessage.FastWrite(Wire.read());
 		}
 		InInterruptMessageProcessing();
-#endif
 	}
 
 	void OnRequest()
@@ -196,45 +149,6 @@ public:
 		Wire.write(OutgoingPointer, OutgoingSize);
 	}
 
-#ifdef I2C_SLAVE_USE_TASK_SCHEDULER
-	bool Callback()
-	{
-		if (IncomingMessage.Length > 0)
-		{
-			// If messages are dropped, newer ones take precedence.
-			IncomingProcessingMessage.CopyVariable(IncomingMessage.Data, IncomingMessage.Length);
-			IncomingMessage.Clear();
-		}
-
-		if (IncomingProcessingMessage.Length > 0)
-		{
-			// Process message with base headers.
-			if (!ProcessMessageInternal())
-			{
-				// Process implementation messages.
-				if (!ProcessMessage())
-				{
-					// Unrecognized message.
-#ifdef DEBUG_TEMPLATE_I2C
-					Serial.println(F("Unable to process message."));
-#endif
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-					ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t)) + 1, sizeof(uint32_t));
-#endif
-				}
-			}
-
-			IncomingProcessingMessage.Clear();
-		}
-		else
-		{
-			Task::disable();
-			return false;
-		}
-
-		return true;
-	}
-#else
 	void InInterruptMessageProcessing()
 	{
 		if (IncomingProcessingMessage.Length > 0)
@@ -251,10 +165,8 @@ public:
 #endif
 				}
 			}
-			IncomingProcessingMessage.Clear();
 		}
 	}
-#endif
 
 protected:
 	void SetOutput(volatile uint8_t* output, const uint8_t length)
@@ -335,10 +247,9 @@ private:
 #ifdef DEBUG_TEMPLATE_I2C
 				Serial.println(F("Sleep device, be back on interrupt."));
 #endif
-#ifndef I2C_SLAVE_USE_TASK_SCHEDULER
 				// If we're processing this mid interrupt, clear pending Wire messages.
 				Wire.flush();
-#endif
+
 				LowPowerFunction();
 			}
 			else
