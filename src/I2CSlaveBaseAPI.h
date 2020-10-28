@@ -14,6 +14,7 @@
 
 #ifndef I2C_SLAVE_MAX_MESSAGE_SIZE
 #define I2C_SLAVE_MAX_MESSAGE_SIZE 32
+#endif 
 
 // Basic messaging error tracking is nice, but it can be disabled with this property.
 //#define I2C_SLAVE_COMMS_ERRORS_ENABLE
@@ -35,7 +36,6 @@
 
 // Disable actual I2C communication, for testing.
 //#define I2C_DRIVER_MOCK_I2C
-#endif 
 
 class BaseAPI
 {

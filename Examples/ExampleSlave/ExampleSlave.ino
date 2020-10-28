@@ -78,8 +78,7 @@ protected:
 	{
 		SetupCallbacks();
 
-
-		return  true;
+		return true;
 	}
 };
 

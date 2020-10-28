@@ -25,7 +25,7 @@ template<const uint8_t DeviceAddress,
 {
 private:
 	// I2C Read pointer output, source data is always external.
-	uint8_t * OutgoingPointer = nullptr;
+	uint8_t* OutgoingPointer = nullptr;
 	volatile uint8_t OutgoingSize = 0;
 	//
 
@@ -75,6 +75,17 @@ public:
 #else
 	TemplateI2CSlave()
 #endif	
+#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
+		: IdMessage()
+#endif
+#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
+#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
+		, ErrorsMessage()
+#else
+		: ErrorsMessage()
+#endif
+
+#endif
 	{
 	}
 
@@ -263,8 +274,8 @@ private:
 		IdMessage.Set32Bit(GetDeviceId(), BaseAPI::SizeHeader);
 #endif
 #ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-		ErrorsMessage.Set32Bit(0,0);
-		ErrorsMessage.Set32Bit(0,sizeof(uint32_t));
+		ErrorsMessage.Set32Bit(0, 0);
+		ErrorsMessage.Set32Bit(0, sizeof(uint32_t));
 		ErrorsMessage.Set32Bit(0, sizeof(uint32_t) * 2);
 #endif
 		return true;
