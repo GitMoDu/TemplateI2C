@@ -40,6 +40,23 @@
 class BaseAPI
 {
 public:
+	union ArrayToUint16 {
+		uint8_t array[sizeof(uint16_t)];
+		uint16_t uint;
+	};
+
+	union ArrayToUint32 {
+		uint8_t array[sizeof(uint32_t)];
+		uint32_t uint;
+	};
+
+	union ArrayToUint64 {
+		uint8_t array[sizeof(uint64_t)];
+		uint64_t uint;
+	};
+
+	static const uint8_t SizeHeader = 1;
+
 	template<const uint8_t HeaderValue,
 		const uint8_t LengthValue,
 		const uint8_t ResponseLengthValue>
