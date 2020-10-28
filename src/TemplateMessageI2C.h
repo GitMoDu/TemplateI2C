@@ -10,15 +10,20 @@
 template<const uint8_t MessageSize>
 class TemplateMessageI2C
 {
-protected:
+private:
 	union ArrayToUint16 {
-		uint8_t array[2];
+		uint8_t array[sizeof(uint16_t)];
 		uint16_t uint;
 	};
 
 	union ArrayToUint32 {
-		uint8_t array[4];
+		uint8_t array[sizeof(uint32_t)];
 		uint32_t uint;
+	};
+
+	union ArrayToUint64 {
+		uint8_t array[sizeof(uint64_t)];
+		uint64_t uint;
 	};
 
 public:
@@ -44,6 +49,11 @@ public:
 	void SetHeader(const uint8_t header)
 	{
 		Data[0] = header;
+	}
+
+	uint8_t* GetPayload()
+	{
+		return &Data[1];
 	}
 
 	uint16_t Get8Bit(const uint8_t offset = 0)
