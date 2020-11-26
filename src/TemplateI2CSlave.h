@@ -173,6 +173,13 @@ public:
 		}
 	}
 
+public:
+#if !defined(__AVR__)
+#error ONLY AVR SUPPORTS RESET
+#endif
+	void(*ResetDevice) (void) = 0;
+
+
 protected:
 	void SetOutput(volatile uint8_t* output, const uint8_t length)
 	{
@@ -197,13 +204,6 @@ private:
 #endif
 		return true;
 	}
-
-#ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
-#if !defined(__AVR__)
-#error ONLY AVR SUPPORTS RESET
-#endif
-	void(*ResetDevice) (void) = 0;
-#endif
 
 	bool ProcessMessageInternal()
 	{
@@ -287,4 +287,3 @@ private:
 	}
 };
 #endif
-
