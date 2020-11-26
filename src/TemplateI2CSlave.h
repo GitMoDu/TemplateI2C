@@ -86,8 +86,13 @@ public:
 #endif
 
 			// Overzealous I2C Setup.
+#ifdef ATTINY_CORE
+			pinMode(PIN_USI_SCL, INPUT);
+			pinMode(PIN_USI_SDA, INPUT);
+#else
 			pinMode(PIN_WIRE_SCL, INPUT);
 			pinMode(PIN_WIRE_SDA, INPUT);
+#endif
 			delay(1);
 			Wire.flush();
 			delay(1);
