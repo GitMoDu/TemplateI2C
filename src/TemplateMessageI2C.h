@@ -29,7 +29,7 @@ private:
 public:
 	uint8_t Data[MessageSize];
 
-	static const uint8_t Length = MessageSize;
+	static const uint8_t ResponseLength = MessageSize;
 
 public:
 	// Header helpers.
