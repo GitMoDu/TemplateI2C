@@ -57,7 +57,7 @@ public:
 		return MessageHelper16.uint;
 	}
 
-	const bool Set16Bit(const uint16_t value, const uint8_t offset)
+	void Set16Bit(const uint16_t value, const uint8_t offset)
 	{
 		ArrayToUint16 MessageHelper16;
 
@@ -65,8 +65,6 @@ public:
 
 		Data[offset] = MessageHelper16.array[0];
 		Data[offset + 1] = MessageHelper16.array[1];
-
-		return true;
 	}
 
 	const uint32_t Get32Bit(const uint8_t offset = 0)
@@ -81,7 +79,7 @@ public:
 		return MessageHelper32.uint;
 	}
 
-	const bool Set32Bit(const uint32_t value, const uint8_t offset)
+	void Set32Bit(const uint32_t value, const uint8_t offset)
 	{
 		ArrayToUint32 MessageHelper32;
 
@@ -91,8 +89,6 @@ public:
 		Data[offset + 1] = MessageHelper32.array[1];
 		Data[offset + 2] = MessageHelper32.array[2];
 		Data[offset + 3] = MessageHelper32.array[3];
-
-		return true;
 	}
 };
 
