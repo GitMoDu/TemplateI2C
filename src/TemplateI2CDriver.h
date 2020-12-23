@@ -68,6 +68,13 @@ public:
 #endif
 	}
 
+#ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
+	const bool ResetDevice()
+	{
+		return SendMessageHeader(BaseAPI::ResetDevice.Header);
+	}
+#endif
+
 protected:
 	const bool WriteCurrentMessage()
 	{
