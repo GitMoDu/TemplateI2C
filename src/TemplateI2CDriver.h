@@ -41,45 +41,14 @@ public:
 			return false;
 		}
 
-		if (I2CInstance == nullptr)
+		if (I2CInstance != nullptr)
 		{
-#ifdef DEBUG_TEMPLATE_I2C_DRIVER
-			Serial.println(F("Device Not Setup."));
-#endif
-			return false;
+			return true;
 		}
 
-		for (uint8_t i = 0; i < SetupRetryMaxCount; i++)
-		{
-			if (CheckDevice())
-			{
-#ifdef DEBUG_TEMPLATE_I2C_DRIVER
-				Serial.println(F("Device detected."));
-#endif
-				return true;
-			}
-			else
-			{
 #ifdef DEBUG_TEMPLATE_I2C_DRIVER
 				Serial.println(F("Device Not detected."));
 #endif
-			}
-		}
-		return false;
-	}
-
-	bool RequestDeviceIdAsync()
-	{
-		return SendMessageHeader(BaseAPI::GetDeviceId.Header);
-	}
-
-	bool GetDeviceIdAsync(uint32_t& deviceIdFromRead)
-	{
-		if (GetResponse(BaseAPI::GetDeviceId.ResponseLength))
-		{
-			deviceIdFromRead = IncomingMessage.Get32Bit(0);
-			return true;
-		}
 
 		return false;
 	}
