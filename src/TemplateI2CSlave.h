@@ -3,6 +3,12 @@
 #ifndef _TEMPLATE_I2C_SLAVE_h)
 #define _TEMPLATE_I2C_SLAVE_h
 
+#ifdef ATTINY_CORE
+#define I2C_BUFFER_SIZE								32
+#define TWI_RX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
+#define TWI_TX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
+#endif
+
 #include <I2CSlaveBaseAPI.h>
 #include <TemplateMessageI2C.h>
 

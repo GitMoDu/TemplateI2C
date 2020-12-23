@@ -5,10 +5,6 @@
 
 #include <stdint.h>
 
-#define I2C_BUFFER_SIZE								32
-#define TWI_RX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
-#define TWI_TX_BUFFER_SIZE							( I2C_BUFFER_SIZE )
-
 #define I2C_ADDRESS_MIN_VALUE						0x10
 #define I2C_ADDRESS_MAX_VALUE						0xC0
 
