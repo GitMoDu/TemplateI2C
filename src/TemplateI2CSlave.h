@@ -47,7 +47,7 @@ protected:
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingProcessingMessage;
 
 protected:
-	virtual bool ProcessMessage() { return false; }
+	virtual void ProcessMessage() {}
 
 	virtual const bool SetupWireCallbacks()
 	{
@@ -140,30 +140,18 @@ public:
 		{
 			IncomingProcessingMessage.FastWrite(Wire.read());
 		}
-		InInterruptMessageProcessing();
+
+		ProcessMessageInternal();
+
 	}
 
 	void OnRequest()
 	{
 		// Outgoing is always valid and ready to send.
-		Wire.write(OutgoingPointer, OutgoingSize);
-	}
-
-	void InInterruptMessageProcessing()
-	{
-		if (IncomingProcessingMessage.Length > 0)
-		{
-			// Process message with base headers.
-			if (!ProcessMessageInternal())
-			{
-				// Process implementation messages.
-				if (!ProcessMessage())
-				{
-					// Unrecognized message.
+		Wire.write(Outgoing, OutgoingSize);
+#ifdef I2C_SLAVE_DEVICE_TRACK_LAST_RECEIVED_ENABLE
+		LastReceived = millis();
 #endif
-				}
-			}
-		}
 	}
 
 public:
@@ -185,7 +173,7 @@ protected:
 		{
 			ErrorFlag = true;
 		}
-	}
+}
 #endif
 
 private:
@@ -199,72 +187,48 @@ private:
 		return true;
 	}
 
-	bool ProcessMessageInternal()
+	void ProcessMessageInternal()
 	{
 		switch (IncomingProcessingMessage.GetHeader())
 		{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		case BaseAPI::GetDeviceId.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::GetDeviceId.CommandLength)
-			{
 #ifdef DEBUG_TEMPLATE_I2C
-				Serial.println(F("GetId"));
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::GetDeviceId.CommandLength;
 #endif
-				OutgoingPointer = IdMessage.Data;
-				OutgoingSize = BaseAPI::GetDeviceId.ResponseLength;
-			}
-			else
-			{
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
-#endif
-			}
-			return true;
+			Outgoing = IdMessage.Data;
+			OutgoingSize = IdMessage.ResponseLength;
+			return;
 #endif
 #ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
 		case BaseAPI::ResetDevice.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::ResetDevice.CommandLength)
-			{
 #ifdef DEBUG_TEMPLATE_I2C
-				Serial.println(F("Reset device, bye bye!"));
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::ResetDevice.CommandLength;
 #endif
-				ResetDevice();
-				// Never runs.
-			}
-			else
-			{
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
-#endif
-			}
-			return true;
+			// If we're processing this mid interrupt, clear pending Wire messages.
+			Wire.flush();
+			ResetDevice();
+			// Never runs.
+
+			return;
 #endif
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 		case BaseAPI::SetLowPowerMode.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::SetLowPowerMode.CommandLength)
-			{
 #ifdef DEBUG_TEMPLATE_I2C
-				Serial.println(F("Sleep device, be back on interrupt."));
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::SetLowPowerMode.CommandLength;
 #endif
-				// If we're processing this mid interrupt, clear pending Wire messages.
-				Wire.flush();
 
-				LowPowerFunction();
-			}
-			else
-			{
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
-#endif
-			}
-			return true;
-#endif
+			// Sleep device, be back on interrupt.
+			// If we're processing this mid interrupt, clear pending Wire messages.
+			Wire.flush();
+			LowPowerFunction();
+
+			return;
 #endif
 		default:
+			ProcessMessage();
 			break;
 		}
-
-		return false;
 	}
 };
 #endif
