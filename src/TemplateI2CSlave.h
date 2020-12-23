@@ -27,10 +27,6 @@ private:
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 	TemplateMessageI2C<BaseAPI::GetDeviceId.ResponseLength> IdMessage;
 #endif
-
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-	TemplateMessageI2C<BaseAPI::GetErrors.ResponseLength> ErrorsMessage;
-#endif
 	//
 
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
