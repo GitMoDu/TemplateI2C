@@ -30,7 +30,7 @@ public:
 	{
 	}
 
-	virtual bool Setup()
+	virtual const bool Setup()
 	{
 		if (DeviceAddress <= I2C_ADDRESS_MIN_VALUE ||
 			DeviceAddress > I2C_ADDRESS_MAX_VALUE)
