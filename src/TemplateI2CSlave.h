@@ -67,8 +67,9 @@ public:
 	{
 	}
 
-
+#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 	const uint32_t GetDeviceId() { return DeviceId; }
+#endif
 
 	virtual const bool Setup()
 	{
