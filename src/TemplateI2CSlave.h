@@ -9,9 +9,13 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-template<const uint8_t DeviceAddress,
-	const uint32_t DeviceId>
-	class TemplateI2CSlave
+
+template<const uint8_t DeviceAddress
+#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
+	, const uint32_t DeviceId
+#endif
+>
+class TemplateI2CSlave
 {
 private:
 	// I2C Read pointer output, source data is always external.
