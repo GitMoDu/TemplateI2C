@@ -27,7 +27,7 @@ private:
 	};
 
 public:
-	volatile uint8_t Data[MessageSize];
+	uint8_t Data[MessageSize];
 
 	static const uint8_t Length = MessageSize;
 
