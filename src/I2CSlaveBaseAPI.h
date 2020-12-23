@@ -55,21 +55,19 @@ public:
 	static const uint8_t SizeHeader = 1;
 
 	template<const uint8_t HeaderValue,
-		const uint8_t LengthValue,
-		const uint8_t ResponseLengthValue>
-		struct ResponseHeader
-	{
-		static const uint8_t Header = HeaderValue;
-		static const uint8_t CommandLength = LengthValue + SizeHeader;
-		static const uint8_t ResponseLength = ResponseLengthValue;
-	};
-
-	template<const uint8_t HeaderValue,
 		const uint8_t LengthValue>
 		struct CommandHeader
 	{
 		static const uint8_t Header = HeaderValue;
-		static const uint8_t CommandLength = LengthValue;
+		static const uint8_t CommandLength = SizeHeader + LengthValue;
+	};
+
+	template<const uint8_t HeaderValue,
+		const uint8_t LengthValue,
+		const uint8_t ResponseLengthValue>
+		struct ResponseHeader : CommandHeader<HeaderValue, LengthValue>
+	{
+		static const uint8_t ResponseLength = ResponseLengthValue;
 	};
 
 private:
