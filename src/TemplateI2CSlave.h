@@ -35,6 +35,11 @@ private:
 	//
 #endif
 
+#ifdef DEBUG_TEMPLATE_I2C
+	// Debug flag, useful for lighting up an LED when an error occurs.
+	volatile ErrorFlag = false;
+#endif
+
 protected:
 	// Buffered read message.
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> IncomingProcessingMessage;
@@ -57,34 +62,21 @@ public:
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		: IdMessage()
 #endif
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		, ErrorsMessage()
-#else
-		: ErrorsMessage()
-#endif
-
-#endif
 	{
 	}
 
+
 	const uint32_t GetDeviceId() { return DeviceId; }
 
-	virtual bool Setup()
+	virtual const bool Setup()
 	{
-		if (DeviceAddress > I2C_ADDRESS_MIN_VALUE
+		if (DeviceAddress >= I2C_ADDRESS_MIN_VALUE
 			&& DeviceAddress < I2C_ADDRESS_MAX_VALUE
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 			&& LowPowerFunction != nullptr
 #endif
 			&& PrepareBaseMessages())
 		{
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			ErrorsMessage.Set32Bit(0, 0);
-			ErrorsMessage.Set32Bit(0, sizeof(uint32_t));
-			ErrorsMessage.Set32Bit(0, sizeof(uint32_t) * 2);
-#endif
-
 			// Overzealous I2C Setup.
 #ifdef ATTINY_CORE
 			pinMode(PIN_USI_SCL, INPUT);
@@ -129,14 +121,14 @@ public:
 		if (length < 1 ||
 			length > min(BaseAPI::MessageMaxSize, TWI_RX_BUFFER_SIZE))
 		{
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-			ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
-#endif
 			while (length--)
 			{
 				Wire.read();
 			}
 
+#ifdef DEBUG_TEMPLATE_I2C
+			ErrorFlag = true;
+#endif
 			return;
 		}
 
@@ -165,8 +157,6 @@ public:
 				if (!ProcessMessage())
 				{
 					// Unrecognized message.
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-					ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(sizeof(uint32_t)) + 1, sizeof(uint32_t));
 #endif
 				}
 			}
@@ -197,10 +187,6 @@ private:
 		IdMessage.SetHeader(BaseAPI::GetDeviceId.Header);
 		IdMessage.Set32Bit(GetDeviceId(), BaseAPI::SizeHeader);
 #endif
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-		ErrorsMessage.Set32Bit(0, 0);
-		ErrorsMessage.Set32Bit(0, sizeof(uint32_t));
-		ErrorsMessage.Set32Bit(0, sizeof(uint32_t) * 2);
 #endif
 		return true;
 	}
@@ -265,19 +251,6 @@ private:
 			}
 			return true;
 #endif
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-		case BaseAPI::GetErrors.Header:
-			if (IncomingProcessingMessage.Length == BaseAPI::GetErrors.CommandLength)
-			{
-				OutgoingPointer = ErrorsMessage.Data;
-				OutgoingSize = ErrorsMessage.Length;
-			}
-			else
-			{
-				// Ironic. Couldn't report on the errors, so we just keep counting errors.
-				ErrorsMessage.Set32Bit(ErrorsMessage.Get32Bit(0) + 1, 0);
-			}
-			return true;
 #endif
 		default:
 			break;

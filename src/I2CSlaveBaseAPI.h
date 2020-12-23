@@ -16,12 +16,6 @@
 #define I2C_SLAVE_MAX_MESSAGE_SIZE 32
 #endif 
 
-// Basic messaging error tracking is nice, but it can be disabled with this property.
-//#define I2C_SLAVE_COMMS_ERRORS_ENABLE
-
-// Useful for debugging, overhead when the system is validate.
-//#define I2C_SLAVE_MESSAGE_RANGE_CHECK
-
 // Enable device id.
 //#define I2C_SLAVE_DEVICE_ID_ENABLE
 
@@ -31,8 +25,12 @@
 // Enable low power state with static callback.
 //#define I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 
+// Basic messaging error flagging, for debugging.
+//#define I2C_SLAVE_COMMS_ERRORS_ENABLE
+
 // Disable actual I2C communication, for testing.
 //#define I2C_DRIVER_MOCK_I2C
+
 
 class BaseAPI
 {
@@ -70,35 +68,22 @@ public:
 		static const uint8_t ResponseLength = ResponseLengthValue;
 	};
 
-private:
-	static const uint8_t TemplateHeaderBase = 0;
-
 public:
-	static const uint8_t HeaderMin = TemplateHeaderBase + 10; // First 10 headers are reserved for template.
+	static const uint8_t HeaderMin = 3; // First 3 headers are reserved for template.
 	static const uint8_t MessageMaxSize = I2C_SLAVE_MAX_MESSAGE_SIZE;
 
 public:
 	// Base message headers
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-	static const ResponseHeader<TemplateHeaderBase,
-		SizeHeader,
-		SizeHeader + sizeof(uint32_t)> GetDeviceId;
+	static const ResponseHeader<0, 0, sizeof(uint32_t)> GetDeviceId;
 #endif
 
 #ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
-	static const CommandHeader<TemplateHeaderBase + 1,
-		SizeHeader> ResetDevice;
+	static const CommandHeader<1, 0> ResetDevice;
 #endif
 
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
-	static const CommandHeader<TemplateHeaderBase + 2,
-		SizeHeader> SetLowPowerMode;
-#endif
-#ifdef I2C_SLAVE_COMMS_ERRORS_ENABLE
-	//uint32_t SizeErrors, ContentErrors, Overflows
-	static const ResponseHeader<TemplateHeaderBase + 3,
-		SizeHeader,
-		sizeof(uint32_t) * 3 > GetErrors;
+	static const CommandHeader<2, 0> SetLowPowerMode;
 #endif
 };
 #endif

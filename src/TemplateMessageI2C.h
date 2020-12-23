@@ -58,24 +58,12 @@ public:
 
 	const uint16_t Get8Bit(const uint8_t offset = 0)
 	{
-#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
-		if (offset > Length - sizeof(uint8_t))
-		{
-			return 0;
-		}
-#endif
 
 		return Data[offset];
 	}
 
 	const uint16_t Get16Bit(const uint8_t offset = 0)
 	{
-#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
-		if (offset > Length - sizeof(uint16_t))
-		{
-			return 0;
-		}
-#endif
 		ArrayToUint16 MessageHelper16;
 		MessageHelper16.array[0] = Data[offset];
 		MessageHelper16.array[1] = Data[offset + 1];
@@ -85,12 +73,6 @@ public:
 
 	const bool Set16Bit(const uint16_t value, const uint8_t offset)
 	{
-#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
-		if ((offset) > Length)
-		{
-			return false;
-		}
-#endif
 		ArrayToUint16 MessageHelper16;
 
 		MessageHelper16.uint = value;
@@ -103,12 +85,6 @@ public:
 
 	const uint32_t Get32Bit(const uint8_t offset = 0)
 	{
-#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
-		if (offset > Length - sizeof(uint32_t))
-		{
-			return 0;
-		}
-#endif 
 		ArrayToUint32 MessageHelper32;
 
 		MessageHelper32.array[0] = Data[offset];
@@ -121,12 +97,6 @@ public:
 
 	const bool Set32Bit(const uint32_t value, const uint8_t offset)
 	{
-#ifdef I2C_SLAVE_MESSAGE_RANGE_CHECK
-		if ((offset) > Length)
-		{
-			return false;
-		}
-#endif
 		ArrayToUint32 MessageHelper32;
 
 		MessageHelper32.uint = value;
