@@ -53,7 +53,7 @@ public:
 		return false;
 	}
 
-	virtual bool CheckDevice()
+	virtual const bool CheckDevice()
 	{
 #ifdef I2C_DRIVER_MOCK_I2C
 		return true;
@@ -79,7 +79,7 @@ public:
 #endif
 	}
 
-	bool GetResponse(const uint8_t requestSize)
+	const bool GetResponse(const uint8_t requestSize)
 	{
 		IncomingMessage.Clear();
 
@@ -101,7 +101,7 @@ public:
 	}
 
 protected:
-	bool WriteCurrentMessage()
+	const bool WriteCurrentMessage()
 	{
 #ifndef I2C_DRIVER_MOCK_I2C
 		I2CInstance->beginTransmission(DeviceAddress);
@@ -114,7 +114,7 @@ protected:
 	}
 
 	// Quick message sender.
-	bool SendMessageHeader(const uint8_t header)
+	const bool SendMessageHeader(const uint8_t header)
 	{
 		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
