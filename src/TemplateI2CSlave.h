@@ -128,8 +128,13 @@ public:
 
 	void OnReceive(int16_t length)
 	{
-		if (length < 1 ||
-			length > min(BaseAPI::MessageMaxSize, TWI_RX_BUFFER_SIZE))
+		// Validate length.
+		if (length < 1
+#ifdef DEBUG_TEMPLATE_I2C
+			length > BaseAPI::MessageMaxSize)
+#else
+			)
+#endif
 		{
 			while (length--)
 			{
