@@ -75,6 +75,13 @@ public:
 	}
 #endif
 
+#ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
+	const bool SleepDevice()
+	{
+		return SendMessageHeader(BaseAPI::SetLowPowerMode.Header);
+	}
+#endif
+
 protected:
 	const bool WriteCurrentMessage()
 	{
