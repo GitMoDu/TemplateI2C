@@ -23,6 +23,9 @@ protected:
 	uint8_t* Outgoing = nullptr;
 	//
 
+#ifdef I2C_SLAVE_DEVICE_TRACK_LAST_RECEIVED_ENABLE
+	volatile uint32_t LastReceived = 0;
+#endif
 
 public:
 	// Base Slave info messages.
@@ -143,6 +146,9 @@ public:
 
 		ProcessMessageInternal();
 
+#ifdef I2C_SLAVE_DEVICE_TRACK_LAST_RECEIVED_ENABLE
+		LastReceived = millis();
+#endif
 	}
 
 	void OnRequest()
@@ -173,7 +179,7 @@ protected:
 		{
 			ErrorFlag = true;
 		}
-}
+	}
 #endif
 
 private:

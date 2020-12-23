@@ -25,6 +25,9 @@
 // Enable low power state with static callback.
 //#define I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 
+// Enable last received timing tracking. Usefull for sleeping after a period of no communications from host.
+//#define I2C_SLAVE_DEVICE_TRACK_LAST_RECEIVED_ENABLE
+
 // Basic messaging error flagging, for debugging.
 //#define I2C_SLAVE_COMMS_ERRORS_ENABLE
 
