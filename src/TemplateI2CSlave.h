@@ -49,7 +49,7 @@ protected:
 protected:
 	virtual bool ProcessMessage() { return false; }
 
-	virtual bool SetupWireCallbacks()
+	virtual const bool SetupWireCallbacks()
 	{
 		// Join i2c bus with address and attach interrupt callbacks.
 		// This should be done from last inheriting class, 
@@ -189,7 +189,7 @@ protected:
 #endif
 
 private:
-	bool PrepareBaseMessages()
+	const bool PrepareBaseMessages()
 	{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 		IdMessage.SetHeader(BaseAPI::GetDeviceId.Header);
