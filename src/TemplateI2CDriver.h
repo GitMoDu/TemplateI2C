@@ -15,7 +15,7 @@ template <const uint8_t DeviceAddress,
 {
 private:
 	static const uint8_t SetupRetryMaxCount = 3;
-	TwoWire* I2CInstance = nullptr;
+	TwoWire* I2CInstance;
 
 protected:
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> OutgoingMessage;
@@ -26,8 +26,8 @@ public:
 
 public:
 	TemplateI2CDriver(TwoWire* i2cInstance)
+		: I2CInstance(i2cInstance)
 	{
-		I2CInstance = i2cInstance;
 	}
 
 	virtual bool Setup()
