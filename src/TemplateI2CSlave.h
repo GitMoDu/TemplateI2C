@@ -180,9 +180,7 @@ private:
 	const bool PrepareBaseMessages()
 	{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		IdMessage.SetHeader(BaseAPI::GetDeviceId.Header);
-		IdMessage.Set32Bit(GetDeviceId(), BaseAPI::SizeHeader);
-#endif
+		IdMessage.Set32Bit(GetDeviceId(), 0);
 #endif
 		return true;
 	}
