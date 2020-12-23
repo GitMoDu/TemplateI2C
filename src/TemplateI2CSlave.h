@@ -17,12 +17,14 @@ template<const uint8_t DeviceAddress
 >
 class TemplateI2CSlave
 {
-private:
+protected:
 	// I2C Read pointer output, source data is always external.
-	uint8_t* OutgoingPointer = nullptr;
 	volatile uint8_t OutgoingSize = 0;
+	uint8_t* Outgoing = nullptr;
 	//
 
+
+public:
 	// Base Slave info messages.
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
 	TemplateMessageI2C<BaseAPI::GetDeviceId.ResponseLength> IdMessage;
@@ -169,16 +171,21 @@ public:
 #endif
 	void(*ResetDevice) (void) = 0;
 
-
 protected:
-	void SetOutput(volatile uint8_t* output, const uint8_t length)
+#ifdef DEBUG_TEMPLATE_I2C
+	void SetOutput(uint8_t* output, const uint8_t length)
 	{
-		if (output != nullptr && length <= TWI_TX_BUFFER_SIZE)
+		if (output != nullptr && length > 0 && length <= BaseAPI::MessageMaxSize)
 		{
-			OutgoingPointer = output;
+			Outgoing = output;
 			OutgoingSize = length;
 		}
+		else
+		{
+			ErrorFlag = true;
+		}
 	}
+#endif
 
 private:
 	bool PrepareBaseMessages()
