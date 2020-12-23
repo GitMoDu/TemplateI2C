@@ -87,6 +87,12 @@ protected:
 		return true;
 #else
 		IncomingMessage.Clear();
+
+		if (WaitBeforeReadMicros > 0)
+		{
+			delayMicroseconds(WaitBeforeReadMicros);
+		}
+
 		if (I2CInstance->requestFrom(DeviceAddress, requestSize))
 		{
 			while (I2CInstance->available())
