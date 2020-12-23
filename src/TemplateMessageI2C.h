@@ -32,14 +32,6 @@ public:
 	static const uint8_t Length = MessageSize;
 
 public:
-	void Copy(uint8_t* inputRaw, const uint8_t length)
-	{
-		for (uint8_t i = 0; i < length; i++)
-		{
-			Data[i] = inputRaw[i];
-		}
-	}
-
 	// Header helpers.
 	const uint8_t GetHeader()
 	{
@@ -54,12 +46,6 @@ public:
 	uint8_t* GetPayload()
 	{
 		return &Data[1];
-	}
-
-	const uint16_t Get8Bit(const uint8_t offset = 0)
-	{
-
-		return Data[offset];
 	}
 
 	const uint16_t Get16Bit(const uint8_t offset = 0)
@@ -128,16 +114,6 @@ public:
 	void FastWrite(const uint8_t value)
 	{
 		Data[Length++] = value;
-	}
-
-	void CopyVariable(uint8_t* inputRaw, const uint8_t length)
-	{
-		Length = length;
-
-		for (uint8_t i = 0; i < length; i++)
-		{
-			Data[i] = inputRaw[i];
-		}
 	}
 };
 #endif
