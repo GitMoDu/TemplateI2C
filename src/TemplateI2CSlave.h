@@ -112,19 +112,17 @@ public:
 		return false;
 	}
 
-
-#ifdef DEBUG_TEMPLATE_I2C
-	void TestInputMessage(uint8_t* data, const uint8_t length)
-	{
-		IncomingProcessingMessage.CopyVariable(data, length);
-		InInterruptMessageProcessing();
-	}
-#endif
-
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
 	void SetLowPowerFunction(void (*lowPowerFunction)())
 	{
 		LowPowerFunction = lowPowerFunction;
+	}
+#endif
+
+#ifdef I2C_SLAVE_DEVICE_TRACK_LAST_RECEIVED_ENABLE
+	const uint32_t GetLastReceivedElapsedMillis()
+	{
+		return millis() - LastReceived;
 	}
 #endif
 
