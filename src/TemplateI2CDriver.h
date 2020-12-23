@@ -58,35 +58,36 @@ public:
 #ifdef I2C_DRIVER_MOCK_I2C
 		return true;
 #else
-
-		bool Ok = SendMessageHeader(BaseAPI::GetDeviceId.Header);
-
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		delay(MillisBeforeResponse);
-
-		if (Ok)
-		{
-			if (!GetResponse(BaseAPI::GetDeviceId.ResponseLength)
-				|| (IncomingMessage.Get32Bit(0) != GetDeviceId()))
-			{
-				Ok = false;
-			}
-		}
+		return SendMessageHeader(0) &&
+			GetResponse(BaseAPI::GetDeviceId.ResponseLength) &&
+			IncomingMessage.Get32Bit(0) == DeviceId;
 #else
-
-		return Ok;
+		return SendMessageHeader(0); // Just check for send Ack on the device address.
 #endif
 #endif
 	}
 
+protected:
+	const bool WriteCurrentMessage()
+	{
+#ifndef I2C_DRIVER_MOCK_I2C
+		I2CInstance->beginTransmission(DeviceAddress);
+		I2CInstance->write(OutgoingMessage.Data, OutgoingMessage.Length);
+
+		return I2CInstance->endTransmission() == 0;
+#else
+		return true;
+#endif		
+	}
+
 	const bool GetResponse(const uint8_t requestSize)
 	{
-		IncomingMessage.Clear();
-
 #ifdef I2C_DRIVER_MOCK_I2C
 		return true;
 #else
-		if (I2CInstance->requestFrom(DeviceAddress, requestSize, true))
+		IncomingMessage.Clear();
+		if (I2CInstance->requestFrom(DeviceAddress, requestSize))
 		{
 			while (I2CInstance->available())
 			{
@@ -100,30 +101,13 @@ public:
 #endif		
 	}
 
-protected:
-	const bool WriteCurrentMessage()
-	{
-#ifndef I2C_DRIVER_MOCK_I2C
-		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write((uint8*)OutgoingMessage.Data, OutgoingMessage.Length);
-
-		return I2CInstance->endTransmission() == 0;
-#else
-		return true;
-#endif		
-	}
-
 	// Quick message sender.
 	const bool SendMessageHeader(const uint8_t header)
 	{
-		OutgoingMessage.Clear();
 		OutgoingMessage.SetHeader(header);
 		OutgoingMessage.Length = 1;
 
 		return WriteCurrentMessage();
 	}
 };
-
-
 #endif
-
