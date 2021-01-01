@@ -10,7 +10,7 @@
 
 template <const uint8_t DeviceAddress,
 	const uint32_t DeviceId,
-	const uint32_t MillisBeforeResponse = 1>
+	const uint32_t WaitBeforeReadMicros = 1>
 	class TemplateI2CDriver
 {
 private:
