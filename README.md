@@ -9,17 +9,15 @@ Common API:
 TemplateI2CSlave:
   - Uses Extended BaseAPI class.
   - Easy extension of I2C device.
-  - No work done during RequestOutput.
-  - Base features (All optional):
+  - No work done during RequestOutput, except copying a pre-set buffer to the I2C buffer.
+  - Very light RequestEvent processing, depends mostly on slave implementation complexity.
+  - Optional features (set by #defines):
     - Get Device Id.
     - Device Reset.
-    - Set Low Power mode (with external pointer function).
-  - Optional Async version, based on TaskScheduler (https://github.com/arkhipenko/TaskScheduler).
-    - Minimal interrupt disruption, messages aren't processed in interrupt.
-    - Double buffered message processing.
+    - Device Low Power mode (with external pointer function).
+	- Track last event timestamp (millis timestamp).
 
 
 TemplateI2CDriver:
-  - Uses Extended BaseAPI class.
+  - Uses the same Extended BaseAPI class.
   - Easy extension of I2C driver.
-
