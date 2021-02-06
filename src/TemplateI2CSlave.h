@@ -48,7 +48,7 @@ public:
 
 #ifdef DEBUG_TEMPLATE_I2C
 	// Debug flag, useful for lighting up an LED when an error occurs.
-	volatile ErrorFlag = false;
+	volatile bool ErrorFlag = false;
 #endif
 
 protected:
