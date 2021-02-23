@@ -158,8 +158,7 @@ protected:
 	{
 		if (WaitBeforeReadMicros > 0)
 		{
-			uint32_t now = micros();
-			uint32_t delta = now - LastCommandMicros;
+			uint32_t delta = micros() - LastCommandMicros;
 
 			if (delta < WaitBeforeReadMicros &&
 				WaitBeforeReadMicros - delta > 0)
