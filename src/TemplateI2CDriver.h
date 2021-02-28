@@ -53,10 +53,6 @@ public:
 			return true;
 		}
 
-#ifdef DEBUG_TEMPLATE_I2C_DRIVER
-		Serial.println(F("Device Not detected."));
-#endif
-
 		return false;
 	}
 
