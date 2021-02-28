@@ -20,8 +20,6 @@ template <const uint8_t DeviceAddress,
 	class TemplateI2CDriver
 {
 private:
-	static const uint8_t SetupRetryMaxCount = 3;
-
 	uint32_t LastCommandMicros = 0;
 
 	TwoWire* I2CInstance;
