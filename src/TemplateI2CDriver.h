@@ -68,11 +68,11 @@ public:
 		return true;
 #else
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		return SendMessageHeader(0) &&
+		return SendMessageHeader(BaseAPI::GetDeviceId.Header) && // Full Id reponse check.
 			GetResponse(BaseAPI::GetDeviceId.ResponseLength) &&
 			IncomingMessage.Get32Bit(0) == DeviceId;
 #else
-		return SendMessageHeader(0); // Just check for send Ack on the device address.
+		return SendMessageHeader(BaseAPI::GetDeviceId.Header); // Just check for send Ack on the device address.
 #endif
 #endif
 	}
