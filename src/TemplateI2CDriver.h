@@ -11,12 +11,12 @@
 /// <summary>
 /// DeviceAddress: I2C address.
 /// DeviceId: 32 bit device ID.
-/// WaitBeforeReadMicros: Minimum time before sequential commands. This depends on the I2C slave hardware and implementation.
+/// CommandMinPeriodMicros: Minimum time before sequential commands. This depends on the I2C slave hardware and implementation.
 /// Defaults to zero so compiler removes it away by default, will throttle sequential commands with blocking delay. 
 /// </summary>
 template <const uint8_t DeviceAddress,
 	const uint32_t DeviceId,
-	const uint32_t WaitBeforeReadMicros = 0>
+	const uint32_t CommandMinPeriodMicros = 0>
 	class TemplateI2CDriver
 {
 private:
@@ -100,7 +100,7 @@ protected:
 
 		if (I2CInstance->endTransmission() == 0)
 		{
-			if (WaitBeforeReadMicros > 0)
+			if (CommandMinPeriodMicros > 0)
 			{
 				LastCommandMicros = micros();
 			}
@@ -131,7 +131,7 @@ protected:
 				IncomingMessage.FastWrite(I2CInstance->read());
 			}
 
-			if (WaitBeforeReadMicros > 0)
+			if (CommandMinPeriodMicros > 0)
 			{
 				LastCommandMicros = micros();
 			}
@@ -154,14 +154,14 @@ protected:
 
 	void CoalesceDelay()
 	{
-		if (WaitBeforeReadMicros > 0)
+		if (CommandMinPeriodMicros > 0)
 		{
 			uint32_t delta = micros() - LastCommandMicros;
 
-			if (delta < WaitBeforeReadMicros &&
-				WaitBeforeReadMicros - delta > 0)
+			if (delta < CommandMinPeriodMicros &&
+				CommandMinPeriodMicros - delta > 0)
 			{
-				delayMicroseconds(WaitBeforeReadMicros - delta);
+				delayMicroseconds(CommandMinPeriodMicros - delta);
 			}
 		}
 	}
