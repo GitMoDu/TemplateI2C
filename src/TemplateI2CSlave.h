@@ -1,6 +1,6 @@
 // TemplateI2CSlave.h
 
-#ifndef _TEMPLATE_I2C_SLAVE_h)
+#ifndef _TEMPLATE_I2C_SLAVE_h
 #define _TEMPLATE_I2C_SLAVE_h
 
 #ifdef ATTINY_CORE
