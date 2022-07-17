@@ -1,0 +1,16 @@
+*.sln
+*.user
+*.filters
+*.vcxproj
+Examples/ExampleDriverTaskUse/.vs/
+Examples/ExampleDriverTaskUse/__vm/
+Examples/ExampleDriverTaskUse/Release/
+Examples/ExampleDriverUse/.vs/ExampleDriverUse/v16/
+Examples/ExampleDriverUse/__vm/
+Examples/ExampleDriverUse/Release/
+Examples/ExampleSlave/.vs/
+Examples/ExampleSlave/__vm/
+Examples/ExampleSlave/Release/
+Examples/ExampleDriver/.vs/
+Examples/ExampleDriver/__vm/
+Examples/ExampleDriver/Release/
