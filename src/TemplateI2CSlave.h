@@ -205,18 +205,18 @@ private:
 		switch (IncomingProcessingMessage.GetHeader())
 		{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		case BaseAPI::GetDeviceId.Header:
+		case BaseAPI::GetDeviceId::Header:
 #ifdef DEBUG_TEMPLATE_I2C
-			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::GetDeviceId.CommandLength;
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::GetDeviceId::CommandLength;
 #endif
 			Outgoing = IdMessage.Data;
 			OutgoingSize = IdMessage.ResponseLength;
 			return;
 #endif
 #ifdef I2C_SLAVE_DEVICE_RESET_ENABLE
-		case BaseAPI::ResetDevice.Header:
+		case BaseAPI::ResetDevice::Header:
 #ifdef DEBUG_TEMPLATE_I2C
-			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::ResetDevice.CommandLength;
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::ResetDevice::CommandLength;
 #endif
 			// If we're processing this mid interrupt, clear pending Wire messages.
 			Wire.flush();
@@ -226,9 +226,9 @@ private:
 			return;
 #endif
 #ifdef I2C_SLAVE_DEVICE_LOW_POWER_ENABLE
-		case BaseAPI::SetLowPowerMode.Header:
+		case BaseAPI::SetLowPowerMode::Header:
 #ifdef DEBUG_TEMPLATE_I2C
-			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::SetLowPowerMode.CommandLength;
+			ErrorFlag |= IncomingProcessingMessage.Length != BaseAPI::SetLowPowerMode::CommandLength;
 #endif
 
 			// Sleep device, be back on interrupt.
