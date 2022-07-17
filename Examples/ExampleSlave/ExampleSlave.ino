@@ -11,7 +11,6 @@
 
 
 // Example controller.
-inline void SetupCallbacks();
 class ExampleControllerClass
 {
 public:
@@ -45,7 +44,7 @@ public:
 	}
 
 protected:
-	virtual bool ProcessMessage()
+	virtual void ProcessMessage() final
 	{
 		switch (IncomingProcessingMessage.GetHeader())
 		{
@@ -59,21 +58,11 @@ protected:
 			if (IncomingProcessingMessage.Length == ExampleApi::Stop::CommandLength)
 			{
 				Controller->Stop();
-				return true;
 			}
 			break;
 		default:
 			break;
 		}
-
-		return false;
-	}
-
-	virtual bool SetupWireCallbacks()
-	{
-		SetupCallbacks();
-
-		return true;
 	}
 };
 
@@ -93,11 +82,6 @@ void RequestEvent()
 	ExampleSlave.OnRequest();
 }
 
-void SetupCallbacks()
-{
-	Wire.onReceive(ReceiveEvent);
-	Wire.onRequest(RequestEvent);
-}
 
 void setup()
 {
@@ -111,7 +95,7 @@ void setup()
 	Serial.println(F("Example I2C Slave Device"));
 #endif
 
-	if (!ExampleSlave.Setup())
+	if (!ExampleSlave.Setup(OnI2CReceive, OnI2CRequest))
 	{
 #ifdef DEBUG_LOG
 		Serial.println(F("Setup Failed."));
@@ -131,6 +115,16 @@ void setup()
 
 void loop()
 {
+}
+
+void OnI2CReceive(int length)
+{
+	ExampleSlave.OnReceive(length);
+}
+
+void OnI2CRequest()
+{
+	ExampleSlave.OnRequest();
 }
 
 #ifdef DEBUG_TESTS

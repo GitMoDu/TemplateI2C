@@ -58,16 +58,6 @@ protected:
 protected:
 	virtual void ProcessMessage() {}
 
-	virtual const bool SetupWireCallbacks()
-	{
-		// Join i2c bus with address and attach interrupt callbacks.
-		// This should be done from last inheriting class, 
-		// to avoid virtual overhead during interrupt.
-		//Wire.onReceive(ReceiveEvent);
-		//Wire.onRequest(RequestEvent);
-		return false;
-	}
-
 public:
 	TemplateI2CSlave()
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
@@ -80,7 +70,7 @@ public:
 	const uint32_t GetDeviceId() { return DeviceId; }
 #endif
 
-	virtual const bool Setup()
+	virtual const bool Setup(void (*onReceive)(int length), void (*onRequest)())
 	{
 		if (DeviceAddress >= I2C_ADDRESS_MIN_VALUE
 			&& DeviceAddress < I2C_ADDRESS_MAX_VALUE
@@ -97,12 +87,10 @@ public:
 			pinMode(PIN_WIRE_SCL, INPUT);
 			pinMode(PIN_WIRE_SDA, INPUT);
 #endif
-			delay(1);
 			Wire.flush();
-			delay(1);
-			//
 
-			SetupWireCallbacks();
+			Wire.onReceive(onReceive);
+			Wire.onRequest(onRequest);
 
 			Wire.begin(DeviceAddress);
 
