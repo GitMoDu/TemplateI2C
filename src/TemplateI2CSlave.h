@@ -66,10 +66,6 @@ public:
 	{
 	}
 
-#ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-	const uint32_t GetDeviceId() { return DeviceId; }
-#endif
-
 	virtual const bool Setup(void (*onReceive)(int length), void (*onRequest)())
 	{
 		if (DeviceAddress >= I2C_ADDRESS_MIN_VALUE
@@ -183,7 +179,7 @@ private:
 	const bool PrepareBaseMessages()
 	{
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-		IdMessage.Set32Bit(GetDeviceId(), 0);
+		IdMessage.Set32Bit(DeviceId, 0);
 #endif
 		return true;
 	}
