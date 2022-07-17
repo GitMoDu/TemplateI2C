@@ -17,12 +17,12 @@
 template <const uint8_t DeviceAddress,
 	const uint32_t DeviceId,
 	const uint32_t CommandMinPeriodMicros = 0>
-	class TemplateI2CDriver
+class TemplateI2CDriver
 {
 private:
 	uint32_t LastCommandMicros = 0;
 
-	TwoWire* I2CInstance;
+	TwoWire& I2CInstance;
 
 protected:
 	TemplateVariableMessageI2C<BaseAPI::MessageMaxSize> OutgoingMessage;
@@ -32,7 +32,7 @@ public:
 	const uint32_t GetDeviceId() { return DeviceId; }
 
 public:
-	TemplateI2CDriver(TwoWire* i2cInstance)
+	TemplateI2CDriver(TwoWire& i2cInstance)
 		: I2CInstance(i2cInstance)
 	{
 	}
@@ -48,12 +48,7 @@ public:
 			return false;
 		}
 
-		if (I2CInstance != nullptr)
-		{
-			return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	virtual const bool CheckDevice()
@@ -91,10 +86,10 @@ protected:
 #ifndef I2C_DRIVER_MOCK_I2C
 		CoalesceDelay();
 
-		I2CInstance->beginTransmission(DeviceAddress);
-		I2CInstance->write(OutgoingMessage.Data, OutgoingMessage.Length);
+		I2CInstance.beginTransmission((uint8_t)DeviceAddress);
+		I2CInstance.write(OutgoingMessage.Data, OutgoingMessage.Length);
 
-		if (I2CInstance->endTransmission() == 0)
+		if (I2CInstance.endTransmission() == 0)
 		{
 			if (CommandMinPeriodMicros > 0)
 			{
@@ -120,11 +115,11 @@ protected:
 
 		CoalesceDelay();
 
-		if (I2CInstance->requestFrom(DeviceAddress, requestSize))
+		if (I2CInstance.requestFrom(DeviceAddress, requestSize))
 		{
-			while (I2CInstance->available())
+			while (I2CInstance.available())
 			{
-				IncomingMessage.FastWrite(I2CInstance->read());
+				IncomingMessage.FastWrite(I2CInstance.read());
 			}
 
 			if (CommandMinPeriodMicros > 0)

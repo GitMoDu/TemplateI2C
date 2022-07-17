@@ -9,15 +9,23 @@
 
 #define SERIAL_BAUD_RATE 115200
 
+#define _TASK_OO_CALLBACKS
+#include <TaskScheduler.h>
+
 #include "I2CExampleApiInclude.h"
-#include <TemplateI2CDriver.h>
-#include <Wire.h>
+#include <TemplateAsyncI2CDriver.h>
+
+HandleI2C I2CHandle(Wire);
+
+// Process scheduler.
+Scheduler SchedulerBase;
 
 ///I2C ExampleDriver
-class ExampleI2CDriver : public TemplateI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>
+class ExampleI2CDriver : public TemplateAsyncI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>
 {
 public:
-	ExampleI2CDriver(TwoWire* i2cInstance) : TemplateI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>(i2cInstance)
+	ExampleI2CDriver(const Scheduler* scheduler, HandleI2C& handle) 
+		: TemplateAsyncI2CDriver<ExampleApi::DeviceAddress, ExampleApi::DeviceId>(scheduler, handle)
 	{
 	}
 
@@ -34,10 +42,11 @@ public:
 
 protected:
 	virtual bool OnSetup() { return true; }
+
 };
 
 
-ExampleI2CDriver ExampleDriver(&Wire);
+ExampleI2CDriver ExampleDriver(&SchedulerBase, I2CHandle);
 ///
 
 void Halt()
@@ -86,6 +95,7 @@ void setup()
 
 void loop()
 {
+	SchedulerBase.execute();
 }
 
 #ifdef DEBUG_TESTS
