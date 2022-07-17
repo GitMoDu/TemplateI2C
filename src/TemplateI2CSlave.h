@@ -115,7 +115,7 @@ public:
 		// Validate length.
 		if (length < 1
 #ifdef DEBUG_TEMPLATE_I2C
-			length > BaseAPI::MessageMaxSize)
+			&& length > BaseAPI::MessageMaxSize)
 #else
 			)
 #endif
