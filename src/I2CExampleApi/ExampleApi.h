@@ -24,12 +24,9 @@ public:
 	static const uint32_t MillisBeforeResponse = 1;
 
 	// Message headers.
-	static const CommandHeader<0x0F, SizeHeader>
-		Start;
+	using Start = CommandHeader<0x0F, SizeHeader>;
 
-	static const CommandHeader<0x1F, SizeHeader>
-		Stop;
-
+	using Stop = CommandHeader<0x1F, SizeHeader>;
 };
 #endif
 

@@ -49,15 +49,14 @@ protected:
 	{
 		switch (IncomingProcessingMessage.GetHeader())
 		{
-		case ExampleApi::Start.Header:
-			if (IncomingProcessingMessage.Length == ExampleApi::Start.CommandLength)
+		case ExampleApi::Start::Header:
+			if (IncomingProcessingMessage.Length == ExampleApi::Start::CommandLength)
 			{
 				Controller->Start();
-				return true;
 			}
 			break;
-		case ExampleApi::Stop.Header:
-			if (IncomingProcessingMessage.Length == ExampleApi::Stop.CommandLength)
+		case ExampleApi::Stop::Header:
+			if (IncomingProcessingMessage.Length == ExampleApi::Stop::CommandLength)
 			{
 				Controller->Stop();
 				return true;
