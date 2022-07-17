@@ -36,7 +36,7 @@ protected:
 public:
 	// Base Slave info messages.
 #ifdef I2C_SLAVE_DEVICE_ID_ENABLE
-	TemplateMessageI2C<BaseAPI::GetDeviceId.ResponseLength> IdMessage;
+	TemplateMessageI2C<BaseAPI::GetDeviceId::ResponseLength> IdMessage;
 #endif
 	//
 
