@@ -11,6 +11,8 @@ namespace BlinkerApi
 	static constexpr uint8_t Address = 123;
 	static constexpr uint32_t Id = 123456;
 
+	static constexpr uint16_t ReplyMinDelay = 25;
+
 	struct Requests : TemplateI2c::Api::Requests
 	{
 		using LedOff = TemplateI2c::Api::Request<TemplateI2c::Api::Requests::UserHeaderStart>;

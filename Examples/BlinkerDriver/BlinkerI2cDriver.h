@@ -6,10 +6,14 @@
 #include <TemplateI2cDriver.h>
 #include <TemplateI2cExample.h>
 
-class BlinkerI2cDriver : public TemplateI2c::I2cDriver<BlinkerApi::Address, BlinkerApi::Id>
+class BlinkerI2cDriver : public TemplateI2c::I2cDriver<BlinkerApi::Address, BlinkerApi::Id, BlinkerApi::ReplyMinDelay>
 {
 private:
-	using Base = TemplateI2c::I2cDriver<BlinkerApi::Address, BlinkerApi::Id>;
+	using Base = TemplateI2c::I2cDriver<BlinkerApi::Address, BlinkerApi::Id, BlinkerApi::ReplyMinDelay>;
+
+protected:
+	using Base::LargestDelay;
+	using Base::ReplyMinDelay;
 
 public:
 	BlinkerI2cDriver(TwoWire& wire)
@@ -37,7 +41,7 @@ public:
 	{
 		if (SendMessage(BlinkerApi::Requests::LongRequest::Header))
 		{
-			delayMicroseconds(BlinkerApi::Requests::LongRequest::ReplyDelay);
+			delayMicroseconds(LargestDelay(BlinkerApi::Requests::LongRequest::ReplyDelay, ReplyMinDelay));
 			if (GetResponse(BlinkerApi::Requests::LongRequest::ReplySize))
 			{
 				return Incoming[0];

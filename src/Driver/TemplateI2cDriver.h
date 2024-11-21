@@ -23,7 +23,6 @@ namespace TemplateI2c
 		{
 			wire.setClock(i2cSpeed);
 		}
-
 #if defined(ARDUINO_ARCH_NRF52)
 		if (pinSDA != UINT8_MAX
 			&& pinSCL != UINT8_MAX)
@@ -36,11 +35,14 @@ namespace TemplateI2c
 #endif
 	}
 
-	template<const uint8_t address, const uint32_t id>
+	template<const uint8_t address, const uint32_t id, uint16_t replyMinDelay = 25>
 	class I2cDriver
 	{
 	public:
 		static constexpr uint8_t Address = address;
+
+	protected:
+		static constexpr uint16_t ReplyMinDelay = replyMinDelay;
 
 	protected:
 		TwoWire& WireInstance;
@@ -63,7 +65,7 @@ namespace TemplateI2c
 		{
 			if (SendMessage(Api::Requests::GetId::Header))
 			{
-				delayMicroseconds(Api::Requests::GetId::ReplyDelay);
+				delayMicroseconds(LargestDelay(Api::Requests::GetId::ReplyDelay, ReplyMinDelay));
 				if (GetResponse(Api::Requests::GetId::ReplySize))
 				{
 					deviceId = GetUint32(Incoming);
@@ -123,6 +125,11 @@ namespace TemplateI2c
 			}
 
 			return false;
+		}
+
+		static constexpr uint16_t LargestDelay(const uint16_t a, const uint16_t b)
+		{
+			return ((a >= b) * a) | ((a < b) * b);
 		}
 	};
 }
