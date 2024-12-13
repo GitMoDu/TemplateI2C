@@ -13,19 +13,19 @@ namespace TemplateI2c
 {
 	namespace AsyncDriver
 	{
-		template<const uint8_t address, const uint32_t id,
-			uint32_t timeoutMicros = 2000>
-		class I2cDriver : public virtual AsyncI2cListener, public TemplateI2c::I2cDriver<address, id>
+		template<const uint8_t address, const uint32_t id, uint16_t replyMinDelay = 25>
+		class I2cDriver : public virtual AsyncI2cListener, public TemplateI2c::I2cDriver<address, id, replyMinDelay>
 		{
 		private:
-			using Base = TemplateI2c::I2cDriver<address, id>;
+			using Base = TemplateI2c::I2cDriver<address, id, replyMinDelay>;
 
 		protected:
 			using Base::SendMessage;
 			using Base::Incoming;
+			using Base::GetReplyDelay;
 
 		private:
-			AsyncRequester<address, id, timeoutMicros> Requester;
+			AsyncRequester<address> Requester;
 
 		public:
 			I2cDriver(TS::Scheduler& scheduler, TwoWire& wire)
@@ -40,12 +40,13 @@ namespace TemplateI2c
 				return RequestResponse(Api::Requests::GetId::Header, Api::Requests::GetId::ReplySize, Api::Requests::GetId::ReplyDelay);
 			}
 
+		protected:
 			const bool RequestResponse(const uint8_t header, uint8_t* payload, const uint8_t payloadSize, const uint8_t responseSize, const uint16_t delayMicros = 0)
 			{
 				if (Requester.CanRequest()
 					&& SendMessage(header, payload, payloadSize))
 				{
-					return Requester.WaitForResponse(header, responseSize, delayMicros);
+					return Requester.WaitForResponse(header, responseSize, GetReplyDelay(delayMicros));
 				}
 
 				return false;
@@ -56,7 +57,7 @@ namespace TemplateI2c
 				if (Requester.CanRequest()
 					&& SendMessage(header))
 				{
-					return Requester.WaitForResponse(header, responseSize, delayMicros);
+					return Requester.WaitForResponse(header, responseSize, GetReplyDelay(delayMicros));
 				}
 
 				return false;
