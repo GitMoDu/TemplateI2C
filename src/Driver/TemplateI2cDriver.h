@@ -65,7 +65,7 @@ namespace TemplateI2c
 		{
 			if (SendMessage(Api::Requests::GetId::Header))
 			{
-				delayMicroseconds(LargestDelay(Api::Requests::GetId::ReplyDelay, ReplyMinDelay));
+				delayMicroseconds(GetReplyDelay(Api::Requests::GetId::ReplyDelay));
 				if (GetResponse(Api::Requests::GetId::ReplySize))
 				{
 					deviceId = GetUint32(Incoming);
@@ -127,9 +127,16 @@ namespace TemplateI2c
 			return false;
 		}
 
-		static constexpr uint16_t LargestDelay(const uint16_t a, const uint16_t b)
+		static const uint16_t GetReplyDelay(const uint16_t delayMicros = 0)
 		{
-			return ((a >= b) * a) | ((a < b) * b);
+			if (delayMicros >= ReplyMinDelay)
+			{
+				return delayMicros;
+			}
+			else
+			{
+				return ReplyMinDelay;
+			}
 		}
 	};
 }

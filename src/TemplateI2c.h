@@ -86,7 +86,7 @@ namespace TemplateI2c
 			/// <summary>
 			/// Get the 32 bit device Id.
 			/// </summary>
-			using GetId = Request<Reset::Header + 1, 0, sizeof(uint32_t), 25>;
+			using GetId = Request<Reset::Header + 1, 0, sizeof(uint32_t)>;
 
 			static constexpr uint8_t UserHeaderStart = GetId::Header + 1;
 		};
