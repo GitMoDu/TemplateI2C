@@ -110,6 +110,37 @@ namespace TemplateI2c
 			return Wire.endTransmission() == 0;
 		}
 
+		const bool SendMessage(const uint8_t header, const uint8_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write(valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
+		const bool SendMessage(const uint8_t header, const uint16_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write((uint8_t)(valuePayload >> 8));
+			Wire.write((uint8_t)valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
+		const bool SendMessage(const uint8_t header, const uint32_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write((uint8_t)(valuePayload >> 24));
+			Wire.write((uint8_t)(valuePayload >> 16));
+			Wire.write((uint8_t)(valuePayload >> 8));
+			Wire.write((uint8_t)valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
 	protected:
 		const bool GetResponse(const uint8_t responseSize)
 		{
