@@ -23,8 +23,7 @@ namespace TemplateI2c
 			virtual void OnI2cError(const ErrorEnum error) {}
 		};
 
-		template<const uint8_t address, const uint32_t id,
-			uint32_t timeoutMicros = 2000>
+		template<const uint8_t address>
 		class AsyncRequester : private TS::Task
 		{
 		private:
@@ -57,7 +56,7 @@ namespace TemplateI2c
 				TwoWire& wire,
 				uint8_t* inBuffer,
 				AsyncI2cListener* receiveListener)
-				: Task(TASK_IMMEDIATE, TASK_FOREVER, &scheduler, false)
+				: TS::Task(TASK_IMMEDIATE, TASK_FOREVER, &scheduler, false)
 				, WireInstance(wire)
 				, InBuffer(inBuffer)
 				, Listener(receiveListener)
