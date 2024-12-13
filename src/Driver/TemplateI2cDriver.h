@@ -77,7 +77,7 @@ namespace TemplateI2c
 			return false;
 		}
 
-		const bool CheckDevicePresent()
+		const bool CheckDevice()
 		{
 			uint32_t deviceId = 0;
 
