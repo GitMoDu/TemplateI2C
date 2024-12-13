@@ -133,7 +133,6 @@ namespace TemplateI2c
 				case StateEnum::RecoveringFromError:
 					InSize = 0;
 					State = StateEnum::NotRequesting;
-					Wire.flush();
 					while (Wire.available())
 					{
 						Wire.read();
