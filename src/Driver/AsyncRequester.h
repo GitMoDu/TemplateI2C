@@ -96,10 +96,11 @@ namespace TemplateI2c
 				switch (State)
 				{
 				case StateEnum::WaitingForRequestDelay:
-					if ((micros() - RequestStart) > RequestDelay)
+					if ((micros() - RequestStart) >= RequestDelay)
 					{
 						if (Wire.requestFrom(address, ResponseSize))
 						{
+							InSize = GetResponse(ResponseSize);
 							State = StateEnum::ReadingReplyData;
 						}
 						else
@@ -109,8 +110,7 @@ namespace TemplateI2c
 						}
 					}
 					break;
-				case StateEnum::ReadingReplyData:
-					InSize = GetResponse(ResponseSize);
+				case StateEnum::ReadingReplyData:					
 					if (InSize >= ResponseSize)
 					{
 						Listener->OnI2cReceived(RequestHeader, ResponseSize);
