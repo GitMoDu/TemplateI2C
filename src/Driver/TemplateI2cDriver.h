@@ -65,7 +65,7 @@ namespace TemplateI2c
 		{
 			if (SendMessage(Api::Requests::GetId::Header))
 			{
-				delayMicroseconds(LargestDelay(Api::Requests::GetId::ReplyDelay, ReplyMinDelay));
+				delayMicroseconds(GetReplyDelay(Api::Requests::GetId::ReplyDelay));
 				if (GetResponse(Api::Requests::GetId::ReplySize))
 				{
 					deviceId = GetUint32(Incoming);
@@ -77,7 +77,7 @@ namespace TemplateI2c
 			return false;
 		}
 
-		const bool CheckDevicePresent()
+		const bool CheckDevice()
 		{
 			uint32_t deviceId = 0;
 
@@ -110,6 +110,37 @@ namespace TemplateI2c
 			return Wire.endTransmission() == 0;
 		}
 
+		const bool SendMessage(const uint8_t header, const uint8_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write(valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
+		const bool SendMessage(const uint8_t header, const uint16_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write((uint8_t)(valuePayload >> 8));
+			Wire.write((uint8_t)valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
+		const bool SendMessage(const uint8_t header, const uint32_t valuePayload)
+		{
+			Wire.beginTransmission(address);
+			Wire.write(header);
+			Wire.write((uint8_t)(valuePayload >> 24));
+			Wire.write((uint8_t)(valuePayload >> 16));
+			Wire.write((uint8_t)(valuePayload >> 8));
+			Wire.write((uint8_t)valuePayload);
+
+			return Wire.endTransmission() == 0;
+		}
+
 	protected:
 		const bool GetResponse(const uint8_t responseSize)
 		{
@@ -127,9 +158,16 @@ namespace TemplateI2c
 			return false;
 		}
 
-		static constexpr uint16_t LargestDelay(const uint16_t a, const uint16_t b)
+		static const uint16_t GetReplyDelay(const uint16_t delayMicros = 0)
 		{
-			return ((a >= b) * a) | ((a < b) * b);
+			if (delayMicros >= ReplyMinDelay)
+			{
+				return delayMicros;
+			}
+			else
+			{
+				return ReplyMinDelay;
+			}
 		}
 	};
 }
