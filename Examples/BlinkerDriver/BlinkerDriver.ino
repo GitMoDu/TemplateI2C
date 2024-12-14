@@ -49,7 +49,7 @@ void loop()
 
 		uint32_t deviceId = 0;
 
-		if (Driver.CheckDevicePresent())
+		if (Driver.CheckDevice())
 		{
 			switch (in)
 			{

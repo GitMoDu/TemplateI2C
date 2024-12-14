@@ -12,8 +12,7 @@ private:
 	using Base = TemplateI2c::I2cDriver<BlinkerApi::Address, BlinkerApi::Id, BlinkerApi::ReplyMinDelay>;
 
 protected:
-	using Base::LargestDelay;
-	using Base::ReplyMinDelay;
+	using Base::GetReplyDelay;
 
 public:
 	BlinkerI2cDriver(TwoWire& wire)
@@ -41,7 +40,7 @@ public:
 	{
 		if (SendMessage(BlinkerApi::Requests::LongRequest::Header))
 		{
-			delayMicroseconds(LargestDelay(BlinkerApi::Requests::LongRequest::ReplyDelay, ReplyMinDelay));
+			delayMicroseconds(GetReplyDelay(BlinkerApi::Requests::LongRequest::ReplyDelay));
 			if (GetResponse(BlinkerApi::Requests::LongRequest::ReplySize))
 			{
 				return Incoming[0];
