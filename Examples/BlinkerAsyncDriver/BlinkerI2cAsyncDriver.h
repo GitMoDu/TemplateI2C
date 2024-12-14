@@ -17,8 +17,7 @@ protected:
 	using Base::OnI2cReceived;
 
 protected:
-	using Base::LargestDelay;
-	using Base::ReplyMinDelay;
+	using Base::GetReplyDelay;
 
 private:
 	void (*OnLongRequestResult)(const uint8_t result) = nullptr;
@@ -79,7 +78,7 @@ public:
 	{
 		if (SendMessage(BlinkerApi::Requests::LongRequest::Header))
 		{
-			delayMicroseconds(LargestDelay(BlinkerApi::Requests::LongRequest::ReplyDelay, ReplyMinDelay));
+			delayMicroseconds(GetReplyDelay(BlinkerApi::Requests::LongRequest::ReplyDelay));
 
 			if (GetResponse(BlinkerApi::Requests::LongRequest::ReplySize))
 			{
