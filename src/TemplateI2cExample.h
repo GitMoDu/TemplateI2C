@@ -8,7 +8,7 @@
 
 namespace BlinkerApi
 {
-	static constexpr uint8_t Address = 123;
+	static constexpr uint8_t Address = 111;
 	static constexpr uint32_t Id = 123456;
 
 	static constexpr uint16_t ReplyMinDelay = 25;

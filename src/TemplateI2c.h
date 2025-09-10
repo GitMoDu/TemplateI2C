@@ -1,5 +1,3 @@
-// TemplateI2c.h
-
 #ifndef _TEMPLATE_I2C_h
 #define _TEMPLATE_I2C_h
 
@@ -7,8 +5,47 @@
 
 namespace TemplateI2c
 {
-	static constexpr size_t I2cAddressMin = 0x0B;
-	static constexpr size_t I2cAddressMax = 0x77;
+	namespace I2CReserved
+	{
+		namespace Addresses
+		{
+			static constexpr uint8_t GeneralCall = 0;
+			static constexpr uint8_t StartByte = 0;
+			static constexpr uint8_t CBusAddress = 1;
+			static constexpr uint8_t ReservedFormat = 2;
+			static constexpr uint8_t ReservedFuture = 3;
+
+			static constexpr uint8_t HighSpeedMode = 0b0000100;
+			static constexpr uint8_t DeviceId = 0b1111100;
+			static constexpr uint8_t Addressing10Bit = 0b1111000;
+		}
+
+		namespace Masks
+		{
+			static constexpr uint8_t HighSpeedMode = 0b1111100;
+			static constexpr uint8_t DeviceId = 0b1111100;
+			static constexpr uint8_t Addressing10Bit = 0b1111100;
+		}
+
+		constexpr bool IsI2cReserved(uint8_t addr)
+		{
+			return addr == Addresses::GeneralCall ||
+				addr == Addresses::CBusAddress ||
+				addr == Addresses::ReservedFormat ||
+				addr == Addresses::ReservedFuture ||
+				((addr & Masks::HighSpeedMode) == Addresses::HighSpeedMode) ||
+				((addr & Masks::Addressing10Bit) == Addresses::Addressing10Bit) ||
+				((addr & Masks::DeviceId) == Addresses::DeviceId);
+		}
+	}
+
+	template<uint8_t addr>
+	struct I2cAddress
+	{
+		static constexpr bool Is7Bit = (addr < 0x80);
+		static constexpr bool IsReserved = I2CReserved::IsI2cReserved(addr);
+		static constexpr bool IsValid = Is7Bit && !IsReserved;
+	};
 
 	template<uint8_t payloadSize>
 	struct MessageStruct

@@ -26,9 +26,7 @@ namespace TemplateI2c
 	protected:
 		const bool SetupI2c(void (*onReceive)(int length), void (*onRequest)(), const uint8_t address)
 		{
-			if (address >= I2cAddressMin
-				&& address <= I2cAddressMax
-				&& onReceive != nullptr)
+			if (onReceive != nullptr)
 			{
 				Wire.begin(address);
 
@@ -49,6 +47,11 @@ namespace TemplateI2c
 	template<uint8_t address, uint32_t id>
 	class I2cSlave : AbstractSlave
 	{
+	private:
+		// Compile-time I2C address validation (7-bit only, non-reserved)
+		static_assert(TemplateI2c::I2cAddress<address>::IsValid,
+			"Invalid I2C 7-bit address. Usable range is 0x08..0x77; 0x00..0x07 and 0x78..0x7F are reserved.");
+
 	private:
 		const uint8_t IdMessage[Api::Requests::GetId::ReplySize]
 		{
